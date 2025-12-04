@@ -26,6 +26,7 @@ static void drawMaze(Texture2D texture) {
 
 int main(void) {
     InitWindow(SCREEN_WIDTH * PIXEL, SCREEN_HEIGHT * PIXEL, "Ms. Pacman");
+    SetWindowPosition(GetMonitorWidth(0) - (SCREEN_WIDTH * PIXEL), 0);
     SetTraceLogLevel(LOG_WARNING);
     SetTargetFPS(60);
     Texture2D gameTexture = LoadTexture("assets/game.png");
