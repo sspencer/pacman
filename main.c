@@ -1,15 +1,7 @@
 #include <stdio.h>
 
 #include "raylib.h"
-
-#define SCREEN_HEIGHT 36
-#define SCREEN_WIDTH  28
-#define GAME_WIDTH 28
-#define GAME_HEIGHT 31
-#define TOP_PADDING 3
-#define ZOOM 3
-#define SIZE 8
-#define PIXEL (SIZE * ZOOM)
+#include "constants.h"
 
 static void drawMaze(Texture2D texture) {
     float board = 0;
