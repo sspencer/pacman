@@ -1,20 +1,9 @@
 #include <stdio.h>
 
 #include "raylib.h"
-#include "constants.h"
+#include "game.h"
+#include "maze.h"
 
-static void drawMaze(Texture2D texture) {
-    float board = 0;
-    float x = (GAME_WIDTH * SIZE) + SIZE / 2.0;
-    float y = (board * GAME_HEIGHT * SIZE);
-    float w = GAME_WIDTH * SIZE;
-    float h = GAME_HEIGHT * SIZE;
-
-    Rectangle src = (Rectangle){x, y, w, h};
-    Rectangle dst = (Rectangle){0, 0, w*ZOOM, h*ZOOM};
-
-    DrawTexturePro(texture, src, dst, (Vector2){0, 0}, 0, WHITE);
-}
 
 int main(void) {
     InitWindow(SCREEN_WIDTH * PIXEL, SCREEN_HEIGHT * PIXEL, "Ms. Pacman");
@@ -22,7 +11,15 @@ int main(void) {
     SetTraceLogLevel(LOG_WARNING);
     SetTargetFPS(60);
     Texture2D gameTexture = LoadTexture("assets/game.png");
+    Image gameImage = LoadImageFromTexture(gameTexture);
+    struct Game game = {0};
+    game.level = 0;
+
+    createMap(&game, &gameImage);
     printf("%d x %d\n", gameTexture.width, gameTexture.height);
+
+    printMaze(&game);
+
 
     Camera2D camera = {
         .offset = {0, TOP_PADDING * PIXEL},
@@ -35,11 +32,12 @@ int main(void) {
         BeginDrawing();
         ClearBackground(BLACK);
         BeginMode2D(camera);
-        drawMaze(gameTexture);
+        drawMaze(gameTexture, 0);
         EndMode2D();
         EndDrawing();
     }
 
+    UnloadImage(gameImage);
     UnloadTexture(gameTexture);
     CloseWindow();
 
