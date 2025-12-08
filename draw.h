@@ -7,7 +7,9 @@
 
 #include <raylib.h>
 
-void draw_maze(const game_t *game, Texture2D texture);
+#include "entity.h"
 
+void draw_maze(Texture2D texture, const game_t *game);
+void draw_player(Texture2D texture, const entity_t *player);
 
 #endif //PACMAN_DRAW_H

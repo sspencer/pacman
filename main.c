@@ -4,14 +4,47 @@
 #include "game.h"
 #include "maze.h"
 #include "draw.h"
+#include "entity.h"
 
-static void update_game(game_t *game, Image *image) {
+typedef struct {
+    game_t *game;
+    entity_t *player;
+    Image *image;
+    Texture2D texture;
+} world_t;
+
+
+static void update_world(world_t world) {
     if (IsKeyPressed(KEY_N)) {
-        game->level = (game->level + 1) % 5;
-        map_maze(game, image);
+        world.game->level = (world.game->level + 1) % 5;
+        map_maze(world.game, world.image);
+    }
+
+    if (IsKeyPressed(KEY_LEFT)) {
+        world.player->dir = DIR_WEST;
+        world.player->next_vel = (Vector2){-1, 0};
+    }
+
+    if (IsKeyPressed(KEY_RIGHT)) {
+        world.player->dir = DIR_EAST;
+        world.player->next_vel = (Vector2){1, 0};
+    }
+
+    if (IsKeyPressed(KEY_UP)) {
+        world.player->dir = DIR_NORTH;
+        world.player->next_vel = (Vector2){0, -1};
+    }
+
+    if (IsKeyPressed(KEY_DOWN)) {
+        world.player->dir = DIR_SOUTH;
+        world.player->next_vel = (Vector2){0, 1};
     }
 }
 
+static void draw_world(world_t world) {
+    draw_maze(world.texture, world.game);
+    draw_player(world.texture, world.player);
+}
 
 int main(void) {
     InitWindow(SCREEN_WIDTH * PIXEL, SCREEN_HEIGHT * PIXEL, "Ms. Pacman");
@@ -24,6 +57,9 @@ int main(void) {
 
     game_t game = {.level=0};
     map_maze(&game, &game_image);
+
+    entity_t player = {};
+    init_player(&player);
 
     if (DEBUG) {
         printf("%d x %d\n", game_texture.width, game_texture.height);
@@ -38,13 +74,16 @@ int main(void) {
         .zoom = 1.0f
     };
 
+    world_t world = {.game=&game, .image=&game_image, .player=&player, .texture=game_texture};
+
     while (!WindowShouldClose()) {
-        update_game(&game, &game_image);
+        update_world(world);
 
         BeginDrawing();
         ClearBackground(BLACK);
         BeginMode2D(camera);
-        draw_maze(&game, game_texture);
+        draw_world(world);
+        //draw_maze(&game, game_texture);
         EndMode2D();
         EndDrawing();
     }

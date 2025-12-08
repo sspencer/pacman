@@ -26,7 +26,9 @@ add_executable(${PROJECT_NAME} main.c
         maze.c
         game.h
         draw.c
-        draw.h)
+        draw.h
+        entity.c
+        entity.h)
 
 target_link_libraries(${PROJECT_NAME} raylib)
 
