@@ -6,11 +6,11 @@
 
 #include "game.h"
 
-long int readPixelArea(Image *img, int startX, int startY, int width, int height) {
+static long int read_block(const Image *img, int startX, int startY) {
     long int result = 0L;
 
-    for (int y = startY; y < startY + height; y++) {
-        for (int x = startX; x < startX + width; x++) {
+    for (int y = startY; y < startY + SIZE; y++) {
+        for (int x = startX; x < startX + SIZE; x++) {
             // Get the color of the pixel at position (pixelX, pixelY)
             result <<= 1;
 
@@ -24,13 +24,13 @@ long int readPixelArea(Image *img, int startX, int startY, int width, int height
     return result;
 }
 
-void createMap(struct Game *game, Image *image) {
+void map_maze(struct Game *game, const Image *image) {
     int offset = game->level * GAME_HEIGHT * SIZE;
 
     // find walls/dots/power ups
     for (int y = 0; y < GAME_HEIGHT; y++) {
         for (int x = 0; x < GAME_WIDTH; x++) {
-            long int pixel = readPixelArea(image, x * SIZE, y * SIZE + offset, SIZE, SIZE);
+            long int pixel = read_block(image, x * SIZE, y * SIZE + offset);
             switch (pixel) {
                 case 0: game->maze[y][x] = EMPTY;
                     break;
@@ -59,19 +59,7 @@ void createMap(struct Game *game, Image *image) {
     }
 }
 
-void drawMaze(Texture2D texture, int level) {
-    float x = (GAME_WIDTH * SIZE) + SIZE / 2.0;
-    float y = ((float) level * GAME_HEIGHT * SIZE);
-    float w = GAME_WIDTH * SIZE;
-    float h = GAME_HEIGHT * SIZE;
-
-    Rectangle src = (Rectangle){x, y, w, h};
-    Rectangle dst = (Rectangle){0, 0, w * ZOOM, h * ZOOM};
-
-    DrawTexturePro(texture, src, dst, (Vector2){0, 0}, 0, WHITE);
-}
-
-void printMaze(struct Game *game) {
+void debugMaze(const struct Game *game) {
     for (int y = 0; y < GAME_HEIGHT; y++) {
         for (int x = 0; x < GAME_WIDTH; x++) {
             switch (game->maze[y][x]) {

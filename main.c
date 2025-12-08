@@ -3,6 +3,14 @@
 #include "raylib.h"
 #include "game.h"
 #include "maze.h"
+#include "draw.h"
+
+static void update_game(struct Game *game, Image *image) {
+    if (IsKeyPressed(KEY_N)) {
+        game->level = (game->level + 1) % 5;
+        map_maze(game, image);
+    }
+}
 
 
 int main(void) {
@@ -10,15 +18,15 @@ int main(void) {
     SetWindowPosition(GetMonitorWidth(0) - (SCREEN_WIDTH * PIXEL), 0);
     SetTraceLogLevel(LOG_WARNING);
     SetTargetFPS(60);
-    Texture2D gameTexture = LoadTexture("assets/game.png");
-    Image gameImage = LoadImageFromTexture(gameTexture);
-    struct Game game = {0};
-    game.level = 0;
+    Texture2D game_texture = LoadTexture("assets/game.png");
+    Image game_image = LoadImageFromTexture(game_texture);
+    struct Game game = {.level=0};
+    map_maze(&game, &game_image);
 
-    createMap(&game, &gameImage);
-    printf("%d x %d\n", gameTexture.width, gameTexture.height);
-
-    printMaze(&game);
+    if (DEBUG) {
+        printf("%d x %d\n", game_texture.width, game_texture.height);
+        debugMaze(&game);
+    }
 
 
     Camera2D camera = {
@@ -29,18 +37,19 @@ int main(void) {
     };
 
     while (!WindowShouldClose()) {
+        update_game(&game, &game_image);
+
         BeginDrawing();
         ClearBackground(BLACK);
         BeginMode2D(camera);
-        drawMaze(gameTexture, 0);
+        draw_maze(&game, game_texture);
         EndMode2D();
         EndDrawing();
     }
 
-    UnloadImage(gameImage);
-    UnloadTexture(gameTexture);
+    UnloadImage(game_image);
+    UnloadTexture(game_texture);
     CloseWindow();
 
     return 0;
 }
-

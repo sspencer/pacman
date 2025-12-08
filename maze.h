@@ -9,8 +9,7 @@
 // Forward declaration allows usage of "struct Game *" without including the full header
 struct Game;
 
-void drawMaze(Texture2D texture, int level);
-void printMaze(struct Game *game);
-void createMap(struct Game *game, Image *image);
+void debugMaze(struct Game *game);
+void map_maze(struct Game *game, Image *image);
 
 #endif //PACMAN_MAZE_H

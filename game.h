@@ -5,7 +5,7 @@
 #ifndef PACMAN_GAME_H
 #define PACMAN_GAME_H
 
-
+#define DEBUG 0
 #define SCREEN_HEIGHT 36
 #define SCREEN_WIDTH  28
 #define GAME_WIDTH 28
@@ -18,7 +18,7 @@
 #define DOT_MASK 103481868288
 #define POWER_MASK 4359202964317896252
 
-enum Tiles {
+enum Tile {
     WALL, DOT, POWER, EMPTY, TUNNEL
 };
 
