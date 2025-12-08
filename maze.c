@@ -24,7 +24,7 @@ static long int read_block(const Image *img, int startX, int startY) {
     return result;
 }
 
-void map_maze(struct Game *game, const Image *image) {
+void map_maze(game_t *game, const Image *image) {
     int offset = game->level * GAME_HEIGHT * SIZE;
 
     // find walls/dots/power ups
@@ -32,50 +32,50 @@ void map_maze(struct Game *game, const Image *image) {
         for (int x = 0; x < GAME_WIDTH; x++) {
             long int pixel = read_block(image, x * SIZE, y * SIZE + offset);
             switch (pixel) {
-                case 0: game->maze[y][x] = EMPTY;
+                case 0: game->maze[y][x] = TILE_EMPTY;
                     break;
-                case DOT_MASK: game->maze[y][x] = DOT;
+                case DOT_MASK: game->maze[y][x] = TILE_DOT;
                     break;
-                case POWER_MASK: game->maze[y][x] = POWER;
+                case POWER_MASK: game->maze[y][x] = TILE_POWER;
                     break;
-                default: game->maze[y][x] = WALL;
+                default: game->maze[y][x] = TILE_WALL;
             }
         }
     }
 
     // find tunnels
     for (int y = 0; y < GAME_HEIGHT; y++) {
-        if ((game->maze[y][0] == EMPTY) &&
-            (game->maze[y][1] == EMPTY || game->maze[y][1] == DOT) &&
-            (game->maze[y][2] == EMPTY || game->maze[y][2] == DOT)) {
-            game->maze[y][0] = TUNNEL;
+        if ((game->maze[y][0] == TILE_EMPTY) &&
+            (game->maze[y][1] == TILE_EMPTY || game->maze[y][1] == TILE_DOT) &&
+            (game->maze[y][2] == TILE_EMPTY || game->maze[y][2] == TILE_DOT)) {
+            game->maze[y][0] = TILE_TUNNEL;
         }
 
-        if ((game->maze[y][GAME_WIDTH - 3] == EMPTY || game->maze[y][GAME_WIDTH - 3] == DOT) &&
-            (game->maze[y][GAME_WIDTH - 2] == EMPTY || game->maze[y][GAME_WIDTH - 2] == DOT) &&
-            game->maze[y][GAME_WIDTH - 1] == EMPTY) {
-            game->maze[y][GAME_WIDTH - 1] = TUNNEL;
+        if ((game->maze[y][GAME_WIDTH - 3] == TILE_EMPTY || game->maze[y][GAME_WIDTH - 3] == TILE_DOT) &&
+            (game->maze[y][GAME_WIDTH - 2] == TILE_EMPTY || game->maze[y][GAME_WIDTH - 2] == TILE_DOT) &&
+            game->maze[y][GAME_WIDTH - 1] == TILE_EMPTY) {
+            game->maze[y][GAME_WIDTH - 1] = TILE_TUNNEL;
         }
     }
 }
 
-void debugMaze(const struct Game *game) {
+void debug_maze(const game_t *game) {
     for (int y = 0; y < GAME_HEIGHT; y++) {
         for (int x = 0; x < GAME_WIDTH; x++) {
             switch (game->maze[y][x]) {
-                case WALL:
+                case TILE_WALL:
                     printf("###");
                     break;
-                case DOT:
+                case TILE_DOT:
                     printf(" + ");
                     break;
-                case POWER:
+                case TILE_POWER:
                     printf(" @ ");
                     break;
-                case EMPTY:
+                case TILE_EMPTY:
                     printf("   ");
                     break;
-                case TUNNEL:
+                case TILE_TUNNEL:
                     printf("<|>");
                     break;
                 default:

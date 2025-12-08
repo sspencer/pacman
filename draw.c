@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void draw_maze(const struct Game *game, Texture2D texture) {
+void draw_maze(const game_t *game, Texture2D texture) {
     // TODO need conversion between level and board
 
     // --- draw maze ---
@@ -60,13 +60,13 @@ void draw_maze(const struct Game *game, Texture2D texture) {
 
     for (int y = 0; y < GAME_HEIGHT; y+=1) {
         for (int x = 0; x < GAME_WIDTH; x+=1) {
-            enum Tile tile = game->maze[y][x];
+            const tile_t tile = game->maze[y][x];
 
             const Rectangle rec = (Rectangle){(float)x*PIXEL, (float)y*PIXEL, PIXEL, PIXEL};
 
-            if (tile == DOT) {
+            if (tile == TILE_DOT) {
                 DrawTexturePro(texture, dotSrc, rec, (Vector2){0, 0}, 0, WHITE);
-            } else if (tile == POWER) {
+            } else if (tile == TILE_POWER) {
                 DrawTexturePro(texture, powerSrc, rec, (Vector2){0, 0}, 0, WHITE);
             }
         }

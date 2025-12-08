@@ -5,7 +5,7 @@
 #include "maze.h"
 #include "draw.h"
 
-static void update_game(struct Game *game, Image *image) {
+static void update_game(game_t *game, Image *image) {
     if (IsKeyPressed(KEY_N)) {
         game->level = (game->level + 1) % 5;
         map_maze(game, image);
@@ -22,12 +22,12 @@ int main(void) {
     Texture2D game_texture = LoadTexture("assets/game.png");
     Image game_image = LoadImageFromTexture(game_texture);
 
-    struct Game game = {.level=0};
+    game_t game = {.level=0};
     map_maze(&game, &game_image);
 
     if (DEBUG) {
         printf("%d x %d\n", game_texture.width, game_texture.height);
-        debugMaze(&game);
+        debug_maze(&game);
     }
 
     // offset camera to allow for score on top
