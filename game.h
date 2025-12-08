@@ -13,7 +13,7 @@
 #define GAME_WIDTH 28
 #define GAME_HEIGHT 31
 #define TOP_PADDING 3
-#define ZOOM 4
+#define ZOOM 3
 #define SIZE 8
 #define PIXEL (SIZE * ZOOM)
 
@@ -31,6 +31,7 @@ typedef enum {
 typedef struct {
     int level;
     int maze[SCREEN_HEIGHT][SCREEN_WIDTH];
+    bool paused;
 } game_t;
 
 

@@ -15,6 +15,13 @@ typedef struct {
 
 
 static void update_world(world_t world) {
+    if (world.game->paused) return;
+
+    if (IsKeyPressed(KEY_P)) {
+        world.game->paused = !world.game->paused;
+        return;
+    }
+
     if (IsKeyPressed(KEY_N)) {
         world.game->level = (world.game->level + 1) % 5;
         map_maze(world.game, world.image);
@@ -55,7 +62,7 @@ int main(void) {
     Texture2D game_texture = LoadTexture("assets/game.png");
     Image game_image = LoadImageFromTexture(game_texture);
 
-    game_t game = {.level=0};
+    game_t game = {.level=0, .paused=false};
     map_maze(&game, &game_image);
 
     entity_t player = {};
