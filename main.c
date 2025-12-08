@@ -18,8 +18,10 @@ int main(void) {
     SetWindowPosition(GetMonitorWidth(0) - (SCREEN_WIDTH * PIXEL), 0);
     SetTraceLogLevel(LOG_WARNING);
     SetTargetFPS(60);
+
     Texture2D game_texture = LoadTexture("assets/game.png");
     Image game_image = LoadImageFromTexture(game_texture);
+
     struct Game game = {.level=0};
     map_maze(&game, &game_image);
 
@@ -28,8 +30,8 @@ int main(void) {
         debugMaze(&game);
     }
 
-
-    Camera2D camera = {
+    // offset camera to allow for score on top
+    static Camera2D camera = {
         .offset = {0, TOP_PADDING * PIXEL},
         .target = {0, 0},
         .rotation = 0.0f,
