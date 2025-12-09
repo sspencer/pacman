@@ -74,10 +74,9 @@ void draw_maze(Texture2D texture, const game_t *game) {
 }
 
 void draw_player(Texture2D texture, const entity_t *e) {
-    float ff = ZOOM * 4; // TODO this gets computed via move() func
     Vector2 sprite = e->sprite[e->dir];
     Rectangle src = (Rectangle){sprite.x + (float)e->frame * e->width, sprite.y, e->width, e->height};
-    Rectangle dst = (Rectangle){e->pixel.x, e->pixel.y-ff, e->width * ZOOM, e->height * ZOOM};
+    Rectangle dst = (Rectangle){e->pixel.x, e->pixel.y, e->width * ZOOM, e->height * ZOOM};
     DrawTexturePro(texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 
 }

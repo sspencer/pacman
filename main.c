@@ -42,7 +42,7 @@ static void update_world(world_t world) {
         world.player->next_vel = (Vector2){0, 1};
     }
 
-    update_player(world.player);
+    update_player(world.game, world.player);
 }
 
 static void draw_world(world_t world) {
