@@ -6,12 +6,7 @@
 #include "draw.h"
 #include "entity.h"
 
-typedef struct {
-    game_t *game;
-    entity_t *player;
-    Image *image;
-    Texture2D texture;
-} world_t;
+
 
 
 static void update_world(world_t world) {
@@ -46,6 +41,8 @@ static void update_world(world_t world) {
         world.player->dir = DIR_SOUTH;
         world.player->next_vel = (Vector2){0, 1};
     }
+
+    update_player(world.player);
 }
 
 static void draw_world(world_t world) {

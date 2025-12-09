@@ -59,3 +59,28 @@ void init_player(entity_t *entity) {
     entity->frame_count = 0;
     entity->frame = 0;
 }
+
+static void update_player_frame(entity_t *entity) {
+    const int frames_per_state = 5;
+    const int cycle_length = 4 * frames_per_state;
+    const int frame_in_cycle = entity->frame_count % cycle_length;
+
+    if (frame_in_cycle < frames_per_state) {
+        entity->frame = 2; // closed
+    } else if (frame_in_cycle < 2 * frames_per_state) {
+        entity->frame = 1; // half open
+    } else if (frame_in_cycle < 3 * frames_per_state) {
+        entity->frame = 0; // fully open
+    } else {
+        entity->frame = 1; // half open (returning
+    }
+
+    entity->frame_count++;
+    if (entity->frame_count > cycle_length) {
+        entity->frame_count = 0;
+    }
+}
+
+void update_player(entity_t *entity) {
+    update_player_frame(entity);
+}
