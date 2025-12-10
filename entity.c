@@ -112,13 +112,11 @@ static void move_entity(entity_t *e, float speed) {
     if (e->vel.x != 0 || e->vel.y != 0) {
         e->pixels_moved += speed;
 
-        float clamped_pixels_moved = fminf(e->pixels_moved, SIZE);
-        float visual_offset_x = e->vel.x * clamped_pixels_moved;
-        float visual_offset_y = e->vel.y * clamped_pixels_moved;
+        const float clamp = fminf(e->pixels_moved, SIZE);
 
-        //. tile size or zoom
-        e->pixel.x = (e->tile.x * SIZE + visual_offset_x - SIZE/2.0f) * ZOOM;
-        e->pixel.y = (e->tile.y * SIZE + visual_offset_y - SIZE/2.0f) * ZOOM;
+        e->pixel.x = (e->tile.x * SIZE + (e->vel.x * clamp) - NUDGE) * ZOOM;
+        e->pixel.y = (e->tile.y * SIZE + (e->vel.y * clamp) - NUDGE) * ZOOM;
+
     }
 }
 

@@ -13,7 +13,7 @@ void draw_maze(Texture2D texture, const game_t *game) {
     // TODO need conversion between level and board
 
     // --- draw maze ---
-    const float mx = ((float)GAME_WIDTH * SIZE) + SIZE / 2.0f;
+    const float mx = ((float)GAME_WIDTH * SIZE) + NUDGE;
     const float my = ((float) game->level * GAME_HEIGHT * SIZE);
     const float mw = GAME_WIDTH * SIZE;
     const float mh = GAME_HEIGHT * SIZE;

@@ -15,7 +15,10 @@
 #define TOP_PADDING 3
 #define ZOOM 3
 #define SIZE 8
+// NUDGE is always SIZE/2
+#define NUDGE 4
 #define PIXEL (SIZE * ZOOM)
+
 
 #define DOT_MASK 103481868288
 #define POWER_MASK 4359202964317896252
