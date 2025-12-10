@@ -8,8 +8,12 @@
 
 
 
-
 static void update_world(world_t world) {
+    static Vector2 north_vel = {0, -1};
+    static Vector2 south_vel = {0, 1};
+    static Vector2 east_vel = {1, 0};
+    static Vector2 west_vel = {-1, 0};
+
     if (world.game->paused) return;
 
     if (IsKeyPressed(KEY_P)) {
@@ -23,23 +27,23 @@ static void update_world(world_t world) {
     }
 
     if (IsKeyPressed(KEY_LEFT)) {
-        world.player->dir = DIR_WEST;
-        world.player->next_vel = (Vector2){-1, 0};
+        world.player->next_dir = DIR_WEST;
+        world.player->next_vel = west_vel;//(Vector2){-1, 0};
     }
 
     if (IsKeyPressed(KEY_RIGHT)) {
-        world.player->dir = DIR_EAST;
-        world.player->next_vel = (Vector2){1, 0};
+        world.player->next_dir = DIR_EAST;
+        world.player->next_vel = east_vel;// (Vector2){1, 0};
     }
 
     if (IsKeyPressed(KEY_UP)) {
-        world.player->dir = DIR_NORTH;
-        world.player->next_vel = (Vector2){0, -1};
+        world.player->next_dir = DIR_NORTH;
+        world.player->next_vel = north_vel;//(Vector2){0, -1};
     }
 
     if (IsKeyPressed(KEY_DOWN)) {
-        world.player->dir = DIR_SOUTH;
-        world.player->next_vel = (Vector2){0, 1};
+        world.player->next_dir = DIR_SOUTH;
+        world.player->next_vel = south_vel;//(Vector2){0, 1};
     }
 
     update_player(world.game, world.player);
@@ -48,6 +52,20 @@ static void update_world(world_t world) {
 static void draw_world(world_t world) {
     draw_maze(world.texture, world.game);
     draw_player(world.texture, world.player);
+}
+
+
+Shader chroma_shader() {
+    Shader shader = LoadShader(NULL, "assets/chroma_key.fs");
+    const float key_color[3] = {0.0f, 0.0f, 0.0f};
+    const float threshold = 0.05f;
+    const int key_color_loc = GetShaderLocation(shader, "keyColor");
+    const int threshold_loc = GetShaderLocation(shader, "threshold");
+
+    SetShaderValue(shader, key_color_loc, key_color, SHADER_UNIFORM_VEC3);
+    SetShaderValue(shader, threshold_loc, &threshold, SHADER_UNIFORM_FLOAT);
+
+    return shader;
 }
 
 int main(void) {
@@ -78,6 +96,8 @@ int main(void) {
         .zoom = 1.0f
     };
 
+    Shader shader = chroma_shader();
+
     world_t world = {.game=&game, .image=&game_image, .player=&player, .texture=game_texture};
 
     while (!WindowShouldClose()) {
@@ -86,8 +106,9 @@ int main(void) {
         BeginDrawing();
         ClearBackground(BLACK);
         BeginMode2D(camera);
+        BeginShaderMode(shader);
         draw_world(world);
-        //draw_maze(&game, game_texture);
+        EndShaderMode();
         EndMode2D();
         EndDrawing();
     }
@@ -98,3 +119,4 @@ int main(void) {
 
     return 0;
 }
+
