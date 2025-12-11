@@ -30,7 +30,7 @@ void map_maze(game_t *game) {
     // find walls/dots/power ups
     for (int y = 0; y < GAME_HEIGHT; y++) {
         for (int x = 0; x < GAME_WIDTH; x++) {
-            long int pixel = read_block(&game_image, x * SIZE, y * SIZE + offset);
+            long int pixel = read_block(&world.game_image, x * SIZE, y * SIZE + offset);
             switch (pixel) {
                 case 0: game->maze[y][x] = TILE_EMPTY;
                     break;

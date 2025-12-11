@@ -8,12 +8,8 @@
 
 
 
-// Define global resources declared in game.h
-Texture2D game_texture;
-Image game_image;
-// Define global game state and player declared in game.h
-game_t game;
-entity_t player;
+// Define global world declared in game.h
+world_t world;
 
 static void update_world(void) {
     static Vector2 north_vel = {0, -1};
@@ -21,39 +17,39 @@ static void update_world(void) {
     static Vector2 east_vel = {1, 0};
     static Vector2 west_vel = {-1, 0};
 
-    if (game.paused) return;
+    if (world.game.paused) return;
 
     if (IsKeyPressed(KEY_P)) {
-        game.paused = !game.paused;
+        world.game.paused = !world.game.paused;
         return;
     }
 
     if (IsKeyPressed(KEY_N)) {
-        game.level = (game.level + 1) % 5;
-        map_maze(&game);
+        world.game.level = (world.game.level + 1) % 5;
+        map_maze(&world.game);
     }
 
     if (IsKeyPressed(KEY_LEFT)) {
-        player.next_dir = DIR_WEST;
-        player.next_vel = west_vel;//(Vector2){-1, 0};
+        world.player.next_dir = DIR_WEST;
+        world.player.next_vel = west_vel;//(Vector2){-1, 0};
     }
 
     if (IsKeyPressed(KEY_RIGHT)) {
-        player.next_dir = DIR_EAST;
-        player.next_vel = east_vel;// (Vector2){1, 0};
+        world.player.next_dir = DIR_EAST;
+        world.player.next_vel = east_vel;// (Vector2){1, 0};
     }
 
     if (IsKeyPressed(KEY_UP)) {
-        player.next_dir = DIR_NORTH;
-        player.next_vel = north_vel;//(Vector2){0, -1};
+        world.player.next_dir = DIR_NORTH;
+        world.player.next_vel = north_vel;//(Vector2){0, -1};
     }
 
     if (IsKeyPressed(KEY_DOWN)) {
-        player.next_dir = DIR_SOUTH;
-        player.next_vel = south_vel;//(Vector2){0, 1};
+        world.player.next_dir = DIR_SOUTH;
+        world.player.next_vel = south_vel;//(Vector2){0, 1};
     }
 
-    update_player(&game, &player);
+    update_player(&world.game, &world.player);
 }
 
 static void draw_world(void) {
@@ -81,19 +77,19 @@ int main(void) {
     SetTraceLogLevel(LOG_WARNING);
     SetTargetFPS(60);
 
-    game_texture = LoadTexture("assets/game.png");
-    game_image = LoadImageFromTexture(game_texture);
+    world.game_texture = LoadTexture("assets/game.png");
+    world.game_image = LoadImageFromTexture(world.game_texture);
 
-    game.level = 0;
-    game.paused = false;
-    map_maze(&game);
+    world.game.level = 0;
+    world.game.paused = false;
+    map_maze(&world.game);
 
-    player = (entity_t){};
-    init_player(&player);
+    world.player = (entity_t){};
+    init_player(&world.player);
 
     if (DEBUG) {
-        printf("%d x %d\n", game_texture.width, game_texture.height);
-        debug_maze(&game);
+        printf("%d x %d\n", world.game_texture.width, world.game_texture.height);
+        debug_maze(&world.game);
     }
 
     // offset camera to allow for score on top
@@ -119,8 +115,8 @@ int main(void) {
         EndDrawing();
     }
 
-    UnloadImage(game_image);
-    UnloadTexture(game_texture);
+    UnloadImage(world.game_image);
+    UnloadTexture(world.game_texture);
     CloseWindow();
 
     return 0;
