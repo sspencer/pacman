@@ -127,4 +127,9 @@ typedef struct {
     Texture2D texture;
 } world_t;
 
+// Global game art resources so they don't need to be passed around
+// Defined in main.c
+extern Texture2D game_texture;
+extern Image game_image;
+
 #endif //PACMAN_GAME_H

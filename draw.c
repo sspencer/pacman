@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void draw_maze(Texture2D texture, const game_t *game) {
+void draw_maze(const game_t *game) {
     // TODO need conversion between level and board
 
     // --- draw maze ---
@@ -21,7 +21,7 @@ void draw_maze(Texture2D texture, const game_t *game) {
     const Rectangle src = (Rectangle){mx, my, mw, mh};
     const Rectangle dst = (Rectangle){0, 0, mw * ZOOM, mh * ZOOM};
 
-    DrawTexturePro(texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+    DrawTexturePro(game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 
     // --- draw dots and power-ups ---
 
@@ -65,18 +65,18 @@ void draw_maze(Texture2D texture, const game_t *game) {
             const Rectangle rec = (Rectangle){(float)x*PIXEL, (float)y*PIXEL, PIXEL, PIXEL};
 
             if (tile == TILE_DOT) {
-                DrawTexturePro(texture, dotSrc, rec, (Vector2){0, 0}, 0, WHITE);
+                DrawTexturePro(game_texture, dotSrc, rec, (Vector2){0, 0}, 0, WHITE);
             } else if (tile == TILE_POWER) {
-                DrawTexturePro(texture, powerSrc, rec, (Vector2){0, 0}, 0, WHITE);
+                DrawTexturePro(game_texture, powerSrc, rec, (Vector2){0, 0}, 0, WHITE);
             }
         }
     }
 }
 
-void draw_player(Texture2D texture, const entity_t *e) {
+void draw_player(const entity_t *e) {
     Vector2 sprite = e->sprite[e->dir];
     Rectangle src = (Rectangle){sprite.x + (float)e->frame * e->width, sprite.y, e->width, e->height};
     Rectangle dst = (Rectangle){e->pixel.x, e->pixel.y, e->width * ZOOM, e->height * ZOOM};
-    DrawTexturePro(texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+    DrawTexturePro(game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 
 }

@@ -8,6 +8,10 @@
 
 
 
+// Define global resources declared in game.h
+Texture2D game_texture;
+Image game_image;
+
 static void update_world(world_t world) {
     static Vector2 north_vel = {0, -1};
     static Vector2 south_vel = {0, 1};
@@ -23,7 +27,7 @@ static void update_world(world_t world) {
 
     if (IsKeyPressed(KEY_N)) {
         world.game->level = (world.game->level + 1) % 5;
-        map_maze(world.game, world.image);
+        map_maze(world.game);
     }
 
     if (IsKeyPressed(KEY_LEFT)) {
@@ -50,8 +54,8 @@ static void update_world(world_t world) {
 }
 
 static void draw_world(world_t world) {
-    draw_maze(world.texture, world.game);
-    draw_player(world.texture, world.player);
+    draw_maze(world.game);
+    draw_player(world.player);
 }
 
 
@@ -74,11 +78,11 @@ int main(void) {
     SetTraceLogLevel(LOG_WARNING);
     SetTargetFPS(60);
 
-    Texture2D game_texture = LoadTexture("assets/game.png");
-    Image game_image = LoadImageFromTexture(game_texture);
+    game_texture = LoadTexture("assets/game.png");
+    game_image = LoadImageFromTexture(game_texture);
 
     game_t game = {.level=0, .paused=false};
-    map_maze(&game, &game_image);
+    map_maze(&game);
 
     entity_t player = {};
     init_player(&player);
