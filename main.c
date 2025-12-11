@@ -11,51 +11,54 @@
 // Define global resources declared in game.h
 Texture2D game_texture;
 Image game_image;
+// Define global game state and player declared in game.h
+game_t game;
+entity_t player;
 
-static void update_world(world_t world) {
+static void update_world(void) {
     static Vector2 north_vel = {0, -1};
     static Vector2 south_vel = {0, 1};
     static Vector2 east_vel = {1, 0};
     static Vector2 west_vel = {-1, 0};
 
-    if (world.game->paused) return;
+    if (game.paused) return;
 
     if (IsKeyPressed(KEY_P)) {
-        world.game->paused = !world.game->paused;
+        game.paused = !game.paused;
         return;
     }
 
     if (IsKeyPressed(KEY_N)) {
-        world.game->level = (world.game->level + 1) % 5;
-        map_maze(world.game);
+        game.level = (game.level + 1) % 5;
+        map_maze(&game);
     }
 
     if (IsKeyPressed(KEY_LEFT)) {
-        world.player->next_dir = DIR_WEST;
-        world.player->next_vel = west_vel;//(Vector2){-1, 0};
+        player.next_dir = DIR_WEST;
+        player.next_vel = west_vel;//(Vector2){-1, 0};
     }
 
     if (IsKeyPressed(KEY_RIGHT)) {
-        world.player->next_dir = DIR_EAST;
-        world.player->next_vel = east_vel;// (Vector2){1, 0};
+        player.next_dir = DIR_EAST;
+        player.next_vel = east_vel;// (Vector2){1, 0};
     }
 
     if (IsKeyPressed(KEY_UP)) {
-        world.player->next_dir = DIR_NORTH;
-        world.player->next_vel = north_vel;//(Vector2){0, -1};
+        player.next_dir = DIR_NORTH;
+        player.next_vel = north_vel;//(Vector2){0, -1};
     }
 
     if (IsKeyPressed(KEY_DOWN)) {
-        world.player->next_dir = DIR_SOUTH;
-        world.player->next_vel = south_vel;//(Vector2){0, 1};
+        player.next_dir = DIR_SOUTH;
+        player.next_vel = south_vel;//(Vector2){0, 1};
     }
 
-    update_player(world.game, world.player);
+    update_player(&game, &player);
 }
 
-static void draw_world(world_t world) {
-    draw_maze(world.game);
-    draw_player(world.player);
+static void draw_world(void) {
+    draw_maze(&game);
+    draw_player(&player);
 }
 
 
@@ -81,10 +84,11 @@ int main(void) {
     game_texture = LoadTexture("assets/game.png");
     game_image = LoadImageFromTexture(game_texture);
 
-    game_t game = {.level=0, .paused=false};
+    game.level = 0;
+    game.paused = false;
     map_maze(&game);
 
-    entity_t player = {};
+    player = (entity_t){};
     init_player(&player);
 
     if (DEBUG) {
@@ -102,16 +106,14 @@ int main(void) {
 
     Shader shader = chroma_shader();
 
-    world_t world = {.game=&game, .image=&game_image, .player=&player, .texture=game_texture};
-
     while (!WindowShouldClose()) {
-        update_world(world);
+        update_world();
 
         BeginDrawing();
         ClearBackground(BLACK);
         BeginMode2D(camera);
         BeginShaderMode(shader);
-        draw_world(world);
+        draw_world();
         EndShaderMode();
         EndMode2D();
         EndDrawing();

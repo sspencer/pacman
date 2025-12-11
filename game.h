@@ -120,16 +120,14 @@ typedef struct {
     bool paused;
 } game_t;
 
-typedef struct {
-    game_t *game;
-    entity_t *player;
-    Image *image;
-    Texture2D texture;
-} world_t;
-
 // Global game art resources so they don't need to be passed around
 // Defined in main.c
 extern Texture2D game_texture;
 extern Image game_image;
+
+// Global game state and player so they don't need to be passed around
+// Defined in main.c
+extern game_t game;
+extern entity_t player;
 
 #endif //PACMAN_GAME_H
