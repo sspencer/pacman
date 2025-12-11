@@ -9,12 +9,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void draw_maze(const game_t *game) {
+void draw_maze(void) {
     // TODO need conversion between level and board
 
     // --- draw maze ---
     const float mx = ((float)GAME_WIDTH * SIZE) + NUDGE;
-    const float my = ((float) game->level * GAME_HEIGHT * SIZE);
+    const float my = ((float) game.level * GAME_HEIGHT * SIZE);
     const float mw = GAME_WIDTH * SIZE;
     const float mh = GAME_HEIGHT * SIZE;
 
@@ -31,7 +31,7 @@ void draw_maze(const game_t *game) {
     const float dot_x = 1, power_x = 1;
     float dot_y, power_y;
 
-    switch (game->level) {
+    switch (game.level) {
         case 0:
             dot_y = 1, power_y = 2;
             break;
@@ -51,7 +51,7 @@ void draw_maze(const game_t *game) {
             dot_y = 157, power_y = 158;
             break;
         default:
-            printf("Invalid level: %d\n", game->level);
+            printf("Invalid level: %d\n", game.level);
             exit(1);
     }
 
@@ -60,7 +60,7 @@ void draw_maze(const game_t *game) {
 
     for (int y = 0; y < GAME_HEIGHT; y+=1) {
         for (int x = 0; x < GAME_WIDTH; x+=1) {
-            const tile_t tile = game->maze[y][x];
+            const tile_t tile = game.maze[y][x];
 
             const Rectangle rec = (Rectangle){(float)x*PIXEL, (float)y*PIXEL, PIXEL, PIXEL};
 
@@ -73,10 +73,10 @@ void draw_maze(const game_t *game) {
     }
 }
 
-void draw_player(const entity_t *e) {
-    Vector2 sprite = e->sprite[e->dir];
-    Rectangle src = (Rectangle){sprite.x + (float)e->frame * e->width, sprite.y, e->width, e->height};
-    Rectangle dst = (Rectangle){e->pixel.x, e->pixel.y, e->width * ZOOM, e->height * ZOOM};
+void draw_player(void) {
+    Vector2 sprite = player.sprite[player.dir];
+    Rectangle src = (Rectangle){sprite.x + (float)player.frame * player.width, sprite.y, player.width, player.height};
+    Rectangle dst = (Rectangle){player.pixel.x, player.pixel.y, player.width * ZOOM, player.height * ZOOM};
     DrawTexturePro(game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 
 }

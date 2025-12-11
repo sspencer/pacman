@@ -9,7 +9,7 @@
 
 #include "entity.h"
 
-void draw_maze(const game_t *game);
-void draw_player(const entity_t *player);
+void draw_maze(void);
+void draw_player(void);
 
 #endif //PACMAN_DRAW_H

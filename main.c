@@ -57,8 +57,8 @@ static void update_world(void) {
 }
 
 static void draw_world(void) {
-    draw_maze(&game);
-    draw_player(&player);
+    draw_maze();
+    draw_player();
 }
 
 
