@@ -6,6 +6,7 @@
 #define PACMAN_GAME_H
 
 #include <raylib.h>
+#include <stdint.h>
 
 #define DEBUG 0
 #define SCREEN_HEIGHT 36
@@ -70,22 +71,22 @@ typedef enum {
 
 typedef struct {
     int score;
-    int pause_frames;
+    uint8_t pause_frames; // TODO what is this
     bool eating_dot;
     // *Timer player_eaten_timer
 } player_data_t;
 
 typedef struct {
-    int ghost_id;
-    int behavior; // TODO convert this
+    uint8_t ghost_id;
+    uint8_t behavior; // TODO convert this
     ghost_t ghost_state;
     fright_t fright_state;
     Vector2 fright_sprite[FRIGHT_COUNT];
     Vector2 eye_sprite[DIR_COUNT];
-    int color; // TODO color why is this needed?
+    uint8_t color; // TODO color why is this needed?
     Vector2 target; // TODO temp for training?
     float bounce_time;
-    int bounce;
+    uint8_t bounce; // TODO what is this
     float base_y;
     float pixels_moved_in_dir;
 } ghost_data_t;
@@ -103,8 +104,8 @@ typedef struct {
     float pixels_moved;
     float width;
     float height;
-    int frame_count;
-    int frame;
+    uint8_t frame_count;
+    uint8_t frame;
     bool eaten;
     double speed_time;
     float speed_pixels;
@@ -115,8 +116,8 @@ typedef struct {
 } entity_t;
 
 typedef struct {
-    int level;
-    int maze[SCREEN_HEIGHT][SCREEN_WIDTH];
+    uint8_t level;
+    uint8_t maze[SCREEN_HEIGHT][SCREEN_WIDTH];
     bool paused;
 } game_t;
 
