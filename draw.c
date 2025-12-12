@@ -89,7 +89,7 @@ void draw_ghosts(void) {
         // if frightened
         // else if eaten
         // else normal
-        const Rectangle src = (Rectangle){g->sprite_x[g->dir], g->sprite_y[g->dir], SPRITE, SPRITE};
+        const Rectangle src = (Rectangle){g->sprite_x[g->dir] + (float)g->frame_index * SPRITE, g->sprite_y[g->dir], SPRITE, SPRITE};
         const Rectangle dst = (Rectangle){g->x, g->y, SPRITE, SPRITE};
         DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
     }

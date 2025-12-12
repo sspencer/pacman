@@ -148,7 +148,7 @@ void init_ghost(entity_t *entity, ghost_data_t data) {
     entity->dir = data.start_dir;
     entity->next_dir = data.start_dir;
 
-    entity->frame_count = 2;
+    entity->frame_count = 0;
     entity->frame_index = 0;
 
     entity->chase = data.chase;
@@ -156,8 +156,24 @@ void init_ghost(entity_t *entity, ghost_data_t data) {
     entity->scatter = data.scatter;
 }
 
+static void update_ghost_frame(entity_t *g) {
+    const int frames_per_state = 15;
+    const int cycle_length = 2 * frames_per_state; // 30 frames for full cycle
+    const int frame_in_cycle = g->frame_count % cycle_length;
+
+    if (frame_in_cycle < frames_per_state) {
+        g->frame_index = 0; // First pose
+    } else {
+        g->frame_index = 1;
+    }
+    
+    g->frame_count++;
+    if (g->frame_count > cycle_length) g->frame_count = 0;
+}
+
 void update_ghosts() {
-    // for (int i = 0; i < GHOST_COUNT; i+=1) {
-    //     entity_t *g = &world.ghosts[i];
-    // }
+    for (int i = 0; i < GHOST_COUNT; i+=1) {
+        entity_t *g = &world.ghosts[i];
+        update_ghost_frame(g);
+    }
 }

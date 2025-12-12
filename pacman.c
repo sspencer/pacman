@@ -31,7 +31,7 @@ void init_pacman(entity_t *entity) {
     entity->dir = DIR_WEST;
     entity->next_dir = DIR_WEST;
 
-    entity->frame_count = 3;
+    entity->frame_count = 0;
     entity->frame_index = 0;
 }
 
