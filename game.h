@@ -21,7 +21,8 @@
 #define TILE2 4
 #define ZOOM 3
 #define PIXEL (TILE * ZOOM)
-
+#define POWER_EAT_PAUSE 3
+#define DOT_EAT_PAUSE 1
 
 #define DOT_MASK 103481868288
 #define POWER_MASK 4359202964317896252
@@ -157,6 +158,7 @@ typedef struct {
     int sprite_x[DIR_COUNT], sprite_y[DIR_COUNT];
     uint8_t frame_count;
     uint8_t frame_index;
+    int frames_to_pause; // when eating dots, pacman drops a frame or two
 } entity_t;
 
 /*
@@ -189,6 +191,7 @@ typedef struct {
     uint8_t level;
     uint8_t maze[SCREEN_HEIGHT][SCREEN_WIDTH];
     int score;
+    int dots_eaten;
     bool paused;
 } game_t;
 

@@ -79,6 +79,8 @@ int main(void) {
 
     world.game.level = 0;
     world.game.paused = false;
+    world.game.score = 0;
+    world.game.dots_eaten = 0;
     map_maze(&world.game);
 
     world.pacman = (entity_t){};

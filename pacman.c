@@ -5,6 +5,8 @@
 #include "pacman.h"
 
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "game.h"
 
@@ -94,6 +96,12 @@ void update_pacman() {
 
     update_pacman_frame(p);
 
+    // eating dots makes pacman drop frames
+    if (p->frames_to_pause > 0) {
+        p->frames_to_pause--;
+        return;
+    }
+
     Vector2 vel = (Vector2){0, 0};
 
     if (p->pixels_moved >= TILE) {
@@ -113,6 +121,28 @@ void update_pacman() {
     }
 
 
+    if (!p->eating_dot) {
+        if (p->tx >= 0 && p->tx < GAME_WIDTH && p->ty >= 0 && p->ty < GAME_HEIGHT) {
+            tile_t tile = game->maze[p->ty][p->tx];
+            if (tile == TILE_DOT) {
+                game->maze[p->ty][p->tx] = TILE_EMPTY;
+                p->eating_dot = true;
+                game->dots_eaten++;
+                game->score += 10;
+                p->frames_to_pause = DOT_EAT_PAUSE;
+            } else if (tile == TILE_POWER) {
+                game->maze[p->ty][p->tx] = TILE_EMPTY;
+                p->eating_dot = true;
+                game->score += 50;
+                if (p->frames_to_pause == 0) { // don't overwrite power eat
+                    p->frames_to_pause = POWER_EAT_PAUSE;
+                }
+            }
+        } else {
+            printf("Pacman went off the map! tx=%d, ty=%d\n", p->tx, p->ty);
+            exit(1);
+        }
+    }
     // if (vel.x == 0 && vel.y == 0) {
     //     vel = velocity[p->next_dir];
     //     if (can_player_move(vel)) {
