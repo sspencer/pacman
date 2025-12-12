@@ -73,11 +73,23 @@ void draw_maze(void) {
     }
 }
 
-void draw_player(void) {
+void draw_pacman(void) {
     entity_t *p = &world.pacman;
     Vector2 sprite = (Vector2){p->sprite_x[p->dir], p->sprite_y[p->dir]};
 
     Rectangle src = (Rectangle){sprite.x + (float)p->frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
     Rectangle dst = (Rectangle){p->x, p->y, SPRITE * ZOOM, SPRITE * ZOOM};
     DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+}
+
+void draw_ghosts(void) {
+    for (int i = 0; i < GHOST_COUNT; i+=1) {
+        entity_t *g = &world.ghosts[i];
+        // if frightened
+        // else if eaten
+        // else normal
+        const Rectangle src = (Rectangle){g->sprite_x[g->dir], g->sprite_y[g->dir], SPRITE, SPRITE};
+        const Rectangle dst = (Rectangle){g->x, g->y, SPRITE * ZOOM, SPRITE * ZOOM};
+        DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+    }
 }

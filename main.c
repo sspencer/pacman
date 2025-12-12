@@ -5,6 +5,7 @@
 #include "maze.h"
 #include "draw.h"
 #include "pacman.h"
+#include "ghost.h"
 
 
 
@@ -42,11 +43,13 @@ static void update_world(void) {
     }
 
     update_pacman();
+    update_ghosts();
 }
 
 static void draw_world(void) {
     draw_maze();
-    draw_player();
+    draw_ghosts();
+    draw_pacman();
 }
 
 
@@ -84,6 +87,10 @@ int main(void) {
     map_maze(&world.game);
 
     init_pacman(&world.pacman);
+    init_ghost(&world.ghosts[GHOST_BLINKY], blinky_data());
+    init_ghost(&world.ghosts[GHOST_INKY], inky_data());
+    init_ghost(&world.ghosts[GHOST_PINKY], pinky_data());
+    init_ghost(&world.ghosts[GHOST_SUE], sue_data());
 
     if (DEBUG) {
         printf("%d x %d\n", world.game_texture.width, world.game_texture.height);

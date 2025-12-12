@@ -14,20 +14,19 @@
 #define DOT_EAT_PAUSE 1
 
 void init_pacman(entity_t *entity) {
-    dir_t start_dir = DIR_WEST;
     entity->tx = 13;
     entity->ty = 23;
     entity->x = (float)entity->tx * TILE;
     entity->y = (float)entity->ty * TILE;
 
-    entity->sprite_x[DIR_NORTH] = 456;
-    entity->sprite_y[DIR_NORTH] = 32;
-    entity->sprite_x[DIR_SOUTH] = 456;
-    entity->sprite_y[DIR_SOUTH] = 48;
     entity->sprite_x[DIR_EAST] = 456;
     entity->sprite_y[DIR_EAST] = 0;
     entity->sprite_x[DIR_WEST] = 456;
     entity->sprite_y[DIR_WEST] = 16;
+    entity->sprite_x[DIR_NORTH] = 456;
+    entity->sprite_y[DIR_NORTH] = 32;
+    entity->sprite_x[DIR_SOUTH] = 456;
+    entity->sprite_y[DIR_SOUTH] = 48;
 
     entity->dir = DIR_WEST;
     entity->next_dir = DIR_WEST;
@@ -82,7 +81,8 @@ static bool can_pacman_move(Vector2 dir) {
     return game->maze[(int)next_tile.y][(int)next_tile.x] != TILE_WALL;
 }
 
-static void move_pacman(entity_t *e, Vector2 vel, float speed) {
+static void move_pacman(Vector2 vel, float speed) {
+    entity_t *e = &world.pacman;
     if (vel.x != 0 || vel.y != 0) {
         e->pixels_moved += speed;
 
@@ -132,13 +132,11 @@ void update_pacman() {
                 p->eating_dot = true;
                 game->dots_eaten++;
                 game->score += 10;
-                printf("SCORE (%d): %d\n", game->dots_eaten, game->score);
                 p->frames_to_pause = DOT_EAT_PAUSE;
             } else if (tile == TILE_POWER) {
                 game->maze[p->ty][p->tx] = TILE_EMPTY;
                 p->eating_dot = true;
                 game->score += 50;
-                printf("SCORE: %d\n", game->score);
                 if (p->frames_to_pause == 0) { // don't overwrite power eat
                     p->frames_to_pause = POWER_EAT_PAUSE;
                 }
@@ -157,5 +155,5 @@ void update_pacman() {
     // }
 
     float speed = calculate_pacman_speed(game->level);
-    move_pacman(p, vel, speed);
+    move_pacman(vel, speed);
 }

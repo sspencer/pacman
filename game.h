@@ -42,11 +42,11 @@ typedef enum {
 } dir_t;
 
 typedef enum {
-    NAME_BLINKY,
-    NAME_INKY,
-    NAME_PINKY,
-    NAME_SUE,
-    NAME_COUNT,
+    GHOST_BLINKY,
+    GHOST_INKY,
+    GHOST_PINKY,
+    GHOST_SUE,
+    GHOST_COUNT,
 } ghost_name_t;
 
 typedef enum {
@@ -119,6 +119,16 @@ typedef struct {
 */
 
 typedef struct {
+    Vector2 sprite;
+    Vector2 start;
+    dir_t start_dir;
+    Vector2 (*chase)(void);
+    bool (*leave)(void);
+    Vector2 (*scatter)(void);
+} ghost_data_t;
+
+
+typedef struct {
     float x, y; // pixel position
     int tx, ty; // tile position
     float pixels_moved;
@@ -131,6 +141,9 @@ typedef struct {
     uint8_t frame_count;
     uint8_t frame_index;
     int frames_to_pause; // when eating dots, pacman drops a frame or two
+    Vector2 (*chase)(void); // ghosts only
+    bool (*leave)(void); // ghosts only
+    Vector2 (*scatter)(void); // ghosts only
 } entity_t;
 
 typedef struct {
@@ -146,7 +159,7 @@ typedef struct {
 typedef struct {
     game_t game;
     entity_t pacman;
-    entity_t ghosts[NAME_COUNT];
+    entity_t ghosts[GHOST_COUNT];
     Texture2D game_texture;
     Image game_image;
 } world_t;
