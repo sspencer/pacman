@@ -9,8 +9,8 @@
 static long int read_block(const Image *img, int startX, int startY) {
     long int result = 0L;
 
-    for (int y = startY; y < startY + SIZE; y++) {
-        for (int x = startX; x < startX + SIZE; x++) {
+    for (int y = startY; y < startY + TILE; y++) {
+        for (int x = startX; x < startX + TILE; x++) {
             // Get the color of the pixel at position (pixelX, pixelY)
             result <<= 1;
 
@@ -25,12 +25,12 @@ static long int read_block(const Image *img, int startX, int startY) {
 }
 
 void map_maze(game_t *game) {
-    int offset = game->level * GAME_HEIGHT * SIZE;
+    int offset = game->level * GAME_HEIGHT * TILE;
 
     // find walls/dots/power ups
     for (int y = 0; y < GAME_HEIGHT; y++) {
         for (int x = 0; x < GAME_WIDTH; x++) {
-            long int pixel = read_block(&world.game_image, x * SIZE, y * SIZE + offset);
+            long int pixel = read_block(&world.game_image, x * TILE, y * TILE + offset);
             switch (pixel) {
                 case 0: game->maze[y][x] = TILE_EMPTY;
                     break;

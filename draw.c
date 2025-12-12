@@ -13,10 +13,10 @@ void draw_maze(void) {
     // TODO need conversion between level and board
 
     // --- draw maze ---
-    const float mx = ((float)GAME_WIDTH * SIZE) + NUDGE;
-    const float my = ((float) world.game.level * GAME_HEIGHT * SIZE);
-    const float mw = GAME_WIDTH * SIZE;
-    const float mh = GAME_HEIGHT * SIZE;
+    const float mx = ((float)GAME_WIDTH * TILE) + TILE2;
+    const float my = ((float) world.game.level * GAME_HEIGHT * TILE);
+    const float mw = GAME_WIDTH * TILE;
+    const float mh = GAME_HEIGHT * TILE;
 
     const Rectangle src = (Rectangle){mx, my, mw, mh};
     const Rectangle dst = (Rectangle){0, 0, mw * ZOOM, mh * ZOOM};
@@ -55,8 +55,8 @@ void draw_maze(void) {
             exit(1);
     }
 
-    Rectangle dotSrc = (Rectangle){dot_x * SIZE, dot_y * SIZE, SIZE, SIZE};
-    Rectangle powerSrc = (Rectangle){power_x * SIZE, power_y * SIZE, SIZE, SIZE};
+    Rectangle dotSrc = (Rectangle){dot_x * TILE, dot_y * TILE, TILE, TILE};
+    Rectangle powerSrc = (Rectangle){power_x * TILE, power_y * TILE, TILE, TILE};
 
     for (int y = 0; y < GAME_HEIGHT; y+=1) {
         for (int x = 0; x < GAME_WIDTH; x+=1) {
@@ -74,9 +74,10 @@ void draw_maze(void) {
 }
 
 void draw_player(void) {
-    Vector2 sprite = world.player.sprite[world.player.dir];
-    Rectangle src = (Rectangle){sprite.x + (float)world.player.frame * world.player.width, sprite.y, world.player.width, world.player.height};
-    Rectangle dst = (Rectangle){world.player.pixel.x, world.player.pixel.y, world.player.width * ZOOM, world.player.height * ZOOM};
-    DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+    entity_t *p = &world.player;
+    Vector2 sprite = (Vector2){p->sprite_x[p->dir], p->sprite_y[p->dir]};
 
+    Rectangle src = (Rectangle){sprite.x + (float)p->frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
+    Rectangle dst = (Rectangle){p->x, p->y, SPRITE * ZOOM, SPRITE * ZOOM};
+    DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 }

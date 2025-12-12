@@ -14,11 +14,13 @@
 #define GAME_WIDTH 28
 #define GAME_HEIGHT 31
 #define TOP_PADDING 3
-#define ZOOM 3
-#define SIZE 8
+// sprite width and height
+#define SPRITE 16
+#define TILE 8
 // NUDGE is always SIZE/2
-#define NUDGE 4
-#define PIXEL (SIZE * ZOOM)
+#define TILE2 4
+#define ZOOM 3
+#define PIXEL (TILE * ZOOM)
 
 
 #define DOT_MASK 103481868288
@@ -90,7 +92,74 @@ typedef struct {
     float base_y;
     float pixels_moved_in_dir;
 } ghost_data_t;
+/*
+struct ghost {
+void (*update)(void* self, const uint8_t* map, int pacman_x, int pacman_y);
+}
+void blinky_update(void* self, const uint8_t*, int, int);
+Entity ghosts[4] = {
+   { .x = 14*8, .y = 11*8, .color = RED,   .update = blinky_update },
+main loop:
+for (int i = 0; i < 4; i++) {
+ghosts[i].update(&ghosts[i], map, pacman_x, pacman_y);
+}
+example func:
+void blinky_update(void* self, const uint8_t* map, int px, int py) {
+    Entity* g = (Entity*)self;
+    // Blinky: aggressive, chases Pac-Man directly
+    int target_x = px;
+    int target_y = py;
 
+    choose_best_direction(g, map, target_x, target_y);
+}
+void make_ghosts_scared() {
+    for (int i = 0; i < 4; i++) {
+        ghosts[i].update = frightened_update;
+        ghosts[i].is_scared = true;
+    }
+}
+
+void make_ghosts_normal() {
+    Entity* assignments[4] = {blinky_update, pinky_update, inky_update, clyde_update};
+    for (int i = 0; i < 4; i++) {
+        ghosts[i].update = assignments[i];
+        ghosts[i].is_scared = false;
+    }
+}
+
+// Recommended struct
+typedef struct {
+    int x, y;              // pixel position
+    int tx, ty;            // tile position (optional)
+    Direction dir;
+    Direction next_dir;
+    int speed;
+    int color;
+    bool scared;
+    bool eyes_only;        // returning to house
+
+    void (*update)(struct Entity* self,
+                   const uint8_t* map,
+                   int pacman_x, int pacman_y,
+                   const struct Entity ghosts[4]);  // if Inky needs others
+} Entity;
+*/
+
+typedef struct {
+    float x, y; // pixel position
+    int tx, ty; // tile position
+    float pixels_moved;
+    dir_t dir;
+    dir_t next_dir;
+    bool scared;
+    bool eyes_only;
+    bool eating_dot;
+    int sprite_x[DIR_COUNT], sprite_y[DIR_COUNT];
+    uint8_t frame_count;
+    uint8_t frame_index;
+} entity_t;
+
+/*
 typedef struct {
     entity_type_t type;
     entity_name_t name;
@@ -114,10 +183,12 @@ typedef struct {
         ghost_data_t ghost;
     } entity_data;
 } entity_t;
+*/
 
 typedef struct {
     uint8_t level;
     uint8_t maze[SCREEN_HEIGHT][SCREEN_WIDTH];
+    int score;
     bool paused;
 } game_t;
 
@@ -129,6 +200,8 @@ typedef struct {
     Texture2D game_texture;
     Image game_image;
 } world_t;
+
+extern Vector2 velocity[DIR_COUNT];
 
 extern world_t world;
 

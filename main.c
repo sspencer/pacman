@@ -10,13 +10,9 @@
 
 // Define global world declared in game.h
 world_t world;
+Vector2 velocity[DIR_COUNT];
 
 static void update_world(void) {
-    static Vector2 north_vel = {0, -1};
-    static Vector2 south_vel = {0, 1};
-    static Vector2 east_vel = {1, 0};
-    static Vector2 west_vel = {-1, 0};
-
     if (world.game.paused) return;
 
     if (IsKeyPressed(KEY_P)) {
@@ -31,25 +27,21 @@ static void update_world(void) {
 
     if (IsKeyPressed(KEY_LEFT)) {
         world.player.next_dir = DIR_WEST;
-        world.player.next_vel = west_vel;//(Vector2){-1, 0};
     }
 
     if (IsKeyPressed(KEY_RIGHT)) {
         world.player.next_dir = DIR_EAST;
-        world.player.next_vel = east_vel;// (Vector2){1, 0};
     }
 
     if (IsKeyPressed(KEY_UP)) {
         world.player.next_dir = DIR_NORTH;
-        world.player.next_vel = north_vel;//(Vector2){0, -1};
     }
 
     if (IsKeyPressed(KEY_DOWN)) {
         world.player.next_dir = DIR_SOUTH;
-        world.player.next_vel = south_vel;//(Vector2){0, 1};
     }
 
-    update_player(&world.game, &world.player);
+    update_player();
 }
 
 static void draw_world(void) {
@@ -76,6 +68,11 @@ int main(void) {
     SetWindowPosition(GetMonitorWidth(0) - (SCREEN_WIDTH * PIXEL), 0);
     SetTraceLogLevel(LOG_WARNING);
     SetTargetFPS(60);
+
+    velocity[DIR_NORTH] = (Vector2){0, -1};
+    velocity[DIR_SOUTH] = (Vector2){0, 1};
+    velocity[DIR_EAST] = (Vector2){1, 0};
+    velocity[DIR_WEST] = (Vector2){-1, 0};
 
     world.game_texture = LoadTexture("assets/game.png");
     world.game_image = LoadImageFromTexture(world.game_texture);
