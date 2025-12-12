@@ -7,71 +7,12 @@
 #include "draw.h"
 #include "pacman.h"
 #include "ghost.h"
+#include "world.h"
 
 // Define global world declared in game.h
 world_t world;
 Vector2 velocity[DIR_COUNT];
-float zoom = 1.0f;
-
-static void update_world(void) {
-    if (world.game.paused) return;
-
-    if (IsKeyPressed(KEY_P)) {
-        world.game.paused = !world.game.paused;
-        return;
-    }
-
-    if (IsKeyPressed(KEY_N)) {
-        world.game.level = (world.game.level + 1) % 5;
-        map_maze(&world.game);
-    }
-
-    if (IsKeyPressed(KEY_LEFT)) {
-        world.pacman.next_dir = DIR_WEST;
-    }
-
-    if (IsKeyPressed(KEY_RIGHT)) {
-        world.pacman.next_dir = DIR_EAST;
-    }
-
-    if (IsKeyPressed(KEY_UP)) {
-        world.pacman.next_dir = DIR_NORTH;
-    }
-
-    if (IsKeyPressed(KEY_DOWN)) {
-        world.pacman.next_dir = DIR_SOUTH;
-    }
-
-    update_pacman();
-    update_ghosts();
-}
-
-static void draw_world(void) {
-    const Camera2D maze_camera = {
-        .offset = {0, TOP_PADDING * TILE * zoom},
-        .target = {0, 0},
-        .rotation = 0.0f,
-        .zoom = zoom
-    };
-
-    const float nudge = TILE/2.0f;
-    const Camera2D sprite_camera = {
-        .offset = {0, TOP_PADDING * TILE * zoom},
-        .target = {nudge, nudge},
-        .rotation = 0.0f,
-        .zoom = zoom
-    };
-
-    BeginMode2D(maze_camera);
-    draw_maze();
-    EndMode2D();
-
-    BeginMode2D(sprite_camera);
-    draw_ghosts();
-    draw_pacman();
-    EndMode2D();
-}
-
+float screen_zoom = 1.0f;
 
 Shader chroma_shader() {
     const Shader shader = LoadShader(NULL, "assets/chroma_key.fs");
@@ -109,10 +50,10 @@ static Vector2 monitor_size() {
 
 int main(void) {
     const Vector2 mon = monitor_size();
-    zoom = floorf(mon.y / (TILE * SCREEN_HEIGHT));
+    screen_zoom = floorf(mon.y / (TILE * SCREEN_HEIGHT));
 
-    InitWindow(SCREEN_WIDTH * TILE * zoom, SCREEN_HEIGHT * TILE * zoom, "Ms. Pacman");
-    SetWindowPosition((int)mon.x - (int)(SCREEN_WIDTH * TILE * zoom), 0);
+    InitWindow(SCREEN_WIDTH * TILE * screen_zoom, SCREEN_HEIGHT * TILE * screen_zoom, "Ms. Pacman");
+    SetWindowPosition((int)mon.x - (int)(SCREEN_WIDTH * TILE * screen_zoom), 0);
     SetTraceLogLevel(LOG_WARNING);
     SetTargetFPS(60);
 
@@ -123,11 +64,11 @@ int main(void) {
 
     world.game_texture = LoadTexture("assets/game.png");
     world.game_image = LoadImageFromTexture(world.game_texture);
-
     world.game.level = 0;
     world.game.paused = false;
     world.game.score = 0;
     world.game.dots_eaten = 0;
+
     map_maze(&world.game);
 
     init_pacman(&world.pacman);
@@ -136,16 +77,14 @@ int main(void) {
     init_ghost(&world.ghosts[GHOST_PINKY], pinky_data());
     init_ghost(&world.ghosts[GHOST_SUE], sue_data());
 
-    Shader shader = chroma_shader();
+    const Shader shader = chroma_shader();
 
     while (!WindowShouldClose()) {
         update_world();
 
         BeginDrawing();
         ClearBackground(BLACK);
-        BeginShaderMode(shader);
-        draw_world();
-        EndShaderMode();
+        draw_world(screen_zoom, shader);
         EndDrawing();
     }
 

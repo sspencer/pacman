@@ -30,7 +30,9 @@ add_executable(${PROJECT_NAME} main.c
         pacman.c
         pacman.h
         ghost.c
-        ghost.h)
+        ghost.h
+        world.c
+        world.h)
 
 target_link_libraries(${PROJECT_NAME} raylib)
 
