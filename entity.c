@@ -12,8 +12,8 @@ void init_player(entity_t *entity) {
     dir_t start_dir = DIR_WEST;
     entity->tx = 13;
     entity->ty = 23;
-    entity->x = entity->tx * TILE;
-    entity->y = entity->ty * TILE;
+    entity->x = (float)entity->tx * TILE;
+    entity->y = (float)entity->ty * TILE;
 
     entity->sprite_x[DIR_NORTH] = 456;
     entity->sprite_y[DIR_NORTH] = 32;
@@ -66,7 +66,10 @@ static float calculate_player_speed(int level) {
     return (1.023f * speed) / 60.0f;
 }
 
-static bool can_player_move(game_t *game, entity_t *p, Vector2 dir) {
+static bool can_player_move(Vector2 dir) {
+    game_t *game = &world.game;
+    entity_t *p = &world.player;
+
     if (dir.x == 0 && dir.y == 0) return false;
     const Vector2 next_tile = (Vector2){p->tx + dir.x, p->ty + dir.y};
     if (next_tile.x < 0 || next_tile.x >= GAME_WIDTH || next_tile.y < 0 || next_tile.y >= GAME_HEIGHT) return false;
@@ -91,6 +94,8 @@ void update_player() {
 
     update_player_frame(p);
 
+    Vector2 vel = (Vector2){0, 0};
+
     if (p->pixels_moved >= TILE) {
         p->tx += (int)velocity[p->dir].x;
         p->ty += (int)velocity[p->dir].y;
@@ -98,18 +103,23 @@ void update_player() {
         p->eating_dot = false;
     }
 
-    Vector2 vel = (Vector2){0, 0};
     // At the new intersection, decide the next move
-    if (can_player_move(game, p, velocity[p->next_dir])) {
+    if (can_player_move(velocity[p->next_dir])) {
         p->dir = p->next_dir;
         vel = velocity[p->dir];
         // else if in the tunnel
-    } else {
-        if (can_player_move(game, p, velocity[p->dir])) {
-            p->dir = p->next_dir;
-            vel = velocity[p->dir];
-        }
+    } else if (can_player_move(velocity[p->dir])) {
+        vel = velocity[p->dir];
     }
+
+
+    // if (vel.x == 0 && vel.y == 0) {
+    //     vel = velocity[p->next_dir];
+    //     if (can_player_move(vel)) {
+    //         p->dir = p->next_dir;
+    //         vel = velocity[p->dir];
+    //     }
+    // }
 
     float speed = calculate_player_speed(game->level);
     move_entity(p, vel, speed);
