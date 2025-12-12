@@ -82,7 +82,7 @@ int main(void) {
     map_maze(&world.game);
 
     world.pacman = (entity_t){};
-    init_player(&world.pacman);
+    init_pacman(&world.pacman);
 
     if (DEBUG) {
         printf("%d x %d\n", world.game_texture.width, world.game_texture.height);

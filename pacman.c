@@ -8,7 +8,7 @@
 
 #include "game.h"
 
-void init_player(entity_t *entity) {
+void init_pacman(entity_t *entity) {
     dir_t start_dir = DIR_WEST;
     entity->tx = 13;
     entity->ty = 23;
