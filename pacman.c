@@ -2,7 +2,7 @@
 // Created by Steve Spencer on 12/8/25.
 //
 
-#include "entity.h"
+#include "pacman.h"
 
 #include <math.h>
 
@@ -31,7 +31,7 @@ void init_player(entity_t *entity) {
     entity->frame_index = 0;
 }
 
-static void update_player_frame(entity_t *p) {
+static void update_pacman_frame(entity_t *p) {
     const int frames_per_state = 5;
     const int cycle_length = 4 * frames_per_state;
     const int frame_in_cycle = p->frame_count % cycle_length;
@@ -52,7 +52,7 @@ static void update_player_frame(entity_t *p) {
     }
 }
 
-static float calculate_player_speed(int level) {
+static float calculate_pacman_speed(int level) {
     float speed;
     // TODO too simple, needs updating
     if (level <= 1) {
@@ -66,9 +66,9 @@ static float calculate_player_speed(int level) {
     return (1.023f * speed) / 60.0f;
 }
 
-static bool can_player_move(Vector2 dir) {
+static bool can_pacman_move(Vector2 dir) {
     game_t *game = &world.game;
-    entity_t *p = &world.player;
+    entity_t *p = &world.pacman;
 
     if (dir.x == 0 && dir.y == 0) return false;
     const Vector2 next_tile = (Vector2){p->tx + dir.x, p->ty + dir.y};
@@ -77,7 +77,7 @@ static bool can_player_move(Vector2 dir) {
     return game->maze[(int)next_tile.y][(int)next_tile.x] != TILE_WALL;
 }
 
-static void move_entity(entity_t *e, Vector2 vel, float speed) {
+static void move_pacman(entity_t *e, Vector2 vel, float speed) {
     if (vel.x != 0 || vel.y != 0) {
         e->pixels_moved += speed;
 
@@ -88,11 +88,11 @@ static void move_entity(entity_t *e, Vector2 vel, float speed) {
     }
 }
 
-void update_player() {
+void update_pacman() {
     game_t *game = &world.game;
-    entity_t *p = &world.player;
+    entity_t *p = &world.pacman;
 
-    update_player_frame(p);
+    update_pacman_frame(p);
 
     Vector2 vel = (Vector2){0, 0};
 
@@ -104,11 +104,11 @@ void update_player() {
     }
 
     // At the new intersection, decide the next move
-    if (can_player_move(velocity[p->next_dir])) {
+    if (can_pacman_move(velocity[p->next_dir])) {
         p->dir = p->next_dir;
         vel = velocity[p->dir];
         // else if in the tunnel
-    } else if (can_player_move(velocity[p->dir])) {
+    } else if (can_pacman_move(velocity[p->dir])) {
         vel = velocity[p->dir];
     }
 
@@ -121,6 +121,6 @@ void update_player() {
     //     }
     // }
 
-    float speed = calculate_player_speed(game->level);
-    move_entity(p, vel, speed);
+    float speed = calculate_pacman_speed(game->level);
+    move_pacman(p, vel, speed);
 }

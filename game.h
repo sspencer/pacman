@@ -196,7 +196,7 @@ typedef struct {
 // Defined in main.c
 typedef struct {
     game_t game;
-    entity_t player;
+    entity_t pacman;
     Texture2D game_texture;
     Image game_image;
 } world_t;

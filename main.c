@@ -4,7 +4,7 @@
 #include "game.h"
 #include "maze.h"
 #include "draw.h"
-#include "entity.h"
+#include "pacman.h"
 
 
 
@@ -26,22 +26,22 @@ static void update_world(void) {
     }
 
     if (IsKeyPressed(KEY_LEFT)) {
-        world.player.next_dir = DIR_WEST;
+        world.pacman.next_dir = DIR_WEST;
     }
 
     if (IsKeyPressed(KEY_RIGHT)) {
-        world.player.next_dir = DIR_EAST;
+        world.pacman.next_dir = DIR_EAST;
     }
 
     if (IsKeyPressed(KEY_UP)) {
-        world.player.next_dir = DIR_NORTH;
+        world.pacman.next_dir = DIR_NORTH;
     }
 
     if (IsKeyPressed(KEY_DOWN)) {
-        world.player.next_dir = DIR_SOUTH;
+        world.pacman.next_dir = DIR_SOUTH;
     }
 
-    update_player();
+    update_pacman();
 }
 
 static void draw_world(void) {
@@ -81,8 +81,8 @@ int main(void) {
     world.game.paused = false;
     map_maze(&world.game);
 
-    world.player = (entity_t){};
-    init_player(&world.player);
+    world.pacman = (entity_t){};
+    init_player(&world.pacman);
 
     if (DEBUG) {
         printf("%d x %d\n", world.game_texture.width, world.game_texture.height);

@@ -74,7 +74,7 @@ void draw_maze(void) {
 }
 
 void draw_player(void) {
-    entity_t *p = &world.player;
+    entity_t *p = &world.pacman;
     Vector2 sprite = (Vector2){p->sprite_x[p->dir], p->sprite_y[p->dir]};
 
     Rectangle src = (Rectangle){sprite.x + (float)p->frame_index * SPRITE, sprite.y, SPRITE, SPRITE};

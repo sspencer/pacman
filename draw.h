@@ -7,7 +7,7 @@
 
 #include <raylib.h>
 
-#include "entity.h"
+#include "pacman.h"
 
 void draw_maze(void);
 void draw_player(void);

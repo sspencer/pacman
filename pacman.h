@@ -8,6 +8,6 @@
 #include "game.h"
 
 void init_player(entity_t *entity);
-void update_player(void);
+void update_pacman(void);
 
 #endif //PACMAN_ENTITY_H
