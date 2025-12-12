@@ -83,7 +83,6 @@ int main(void) {
     world.game.dots_eaten = 0;
     map_maze(&world.game);
 
-    world.pacman = (entity_t){};
     init_pacman(&world.pacman);
 
     if (DEBUG) {

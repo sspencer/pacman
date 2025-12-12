@@ -17,12 +17,10 @@
 // sprite width and height
 #define SPRITE 16
 #define TILE 8
-// NUDGE is always SIZE/2
+// Half of tile to nudge sprites to center of maze
 #define TILE2 4
 #define ZOOM 3
 #define PIXEL (TILE * ZOOM)
-#define POWER_EAT_PAUSE 3
-#define DOT_EAT_PAUSE 1
 
 #define DOT_MASK 103481868288
 #define POWER_MASK 4359202964317896252
@@ -44,18 +42,12 @@ typedef enum {
 } dir_t;
 
 typedef enum {
-    TYPE_PLAYER,
-    TYPE_GHOST
-} entity_type_t;
-
-typedef enum {
-    NAME_PLAYER,
     NAME_BLINKY,
     NAME_INKY,
     NAME_PINKY,
     NAME_SUE,
     NAME_COUNT,
-} entity_name_t;
+} ghost_name_t;
 
 typedef enum {
     GHOST_SCATTER,
@@ -64,35 +56,15 @@ typedef enum {
     GHOST_EATEN,
     GHOST_IN_HOUSE,
     GHOST_LEAVING_HOUSE
-} ghost_t;
+} ghost_state_t;
 
 typedef enum {
     FRIGHT_WHITE,
     FRIGHT_BLUE,
     FRIGHT_COUNT
-} fright_t;
+} fright_state_t;
 
-typedef struct {
-    int score;
-    uint8_t pause_frames; // TODO what is this
-    bool eating_dot;
-    // *Timer player_eaten_timer
-} player_data_t;
 
-typedef struct {
-    uint8_t ghost_id;
-    uint8_t behavior; // TODO convert this
-    ghost_t ghost_state;
-    fright_t fright_state;
-    Vector2 fright_sprite[FRIGHT_COUNT];
-    Vector2 eye_sprite[DIR_COUNT];
-    uint8_t color; // TODO color why is this needed?
-    Vector2 target; // TODO temp for training?
-    float bounce_time;
-    uint8_t bounce; // TODO what is this
-    float base_y;
-    float pixels_moved_in_dir;
-} ghost_data_t;
 /*
 struct ghost {
 void (*update)(void* self, const uint8_t* map, int pacman_x, int pacman_y);
@@ -161,32 +133,6 @@ typedef struct {
     int frames_to_pause; // when eating dots, pacman drops a frame or two
 } entity_t;
 
-/*
-typedef struct {
-    entity_type_t type;
-    entity_name_t name;
-    Vector2 sprite[DIR_COUNT];
-    dir_t dir;
-    dir_t next_dir;
-    Vector2 vel;
-    Vector2 next_vel;
-    Vector2 tile;
-    Vector2 pixel;
-    float pixels_moved;
-    float width;
-    float height;
-    uint8_t frame_count;
-    uint8_t frame;
-    bool eaten;
-    double speed_time;
-    float speed_pixels;
-    union {
-        player_data_t player;
-        ghost_data_t ghost;
-    } entity_data;
-} entity_t;
-*/
-
 typedef struct {
     uint8_t level;
     uint8_t maze[SCREEN_HEIGHT][SCREEN_WIDTH];
@@ -200,6 +146,7 @@ typedef struct {
 typedef struct {
     game_t game;
     entity_t pacman;
+    entity_t ghosts[NAME_COUNT];
     Texture2D game_texture;
     Image game_image;
 } world_t;

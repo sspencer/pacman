@@ -10,6 +10,9 @@
 
 #include "game.h"
 
+#define POWER_EAT_PAUSE 3
+#define DOT_EAT_PAUSE 1
+
 void init_pacman(entity_t *entity) {
     dir_t start_dir = DIR_WEST;
     entity->tx = 13;
@@ -129,11 +132,13 @@ void update_pacman() {
                 p->eating_dot = true;
                 game->dots_eaten++;
                 game->score += 10;
+                printf("SCORE (%d): %d\n", game->dots_eaten, game->score);
                 p->frames_to_pause = DOT_EAT_PAUSE;
             } else if (tile == TILE_POWER) {
                 game->maze[p->ty][p->tx] = TILE_EMPTY;
                 p->eating_dot = true;
                 game->score += 50;
+                printf("SCORE: %d\n", game->score);
                 if (p->frames_to_pause == 0) { // don't overwrite power eat
                     p->frames_to_pause = POWER_EAT_PAUSE;
                 }
