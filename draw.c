@@ -96,12 +96,17 @@ void draw_ghosts(void) {
 }
 
 void draw_checkerboard(void) {
-    Color c1 = (Color){255, 255, 255, 120};
-    Color c2 = (Color){255, 255, 255, 80};
+    const Color c1 = (Color){255, 255, 255, 130};
+    const Color c2 = (Color){255, 255, 255, 90};
+    const Color c3 = (Color){255, 0, 0, 150};
     int i = 0;
     for (int y = 0; y < GAME_HEIGHT; y+=1) {
         for (int x = 0; x < GAME_WIDTH; x+=1) {
-            DrawRectangleV((Vector2){x*TILE, y*TILE}, (Vector2){TILE, TILE}, (i % 2 == 0) ? c1 : c2);
+            Color c = (i % 2 == 0) ? c1 : c2;
+            if (y == 12 && (x == 13 || x == 14)) {
+                c = c3;
+            }
+            DrawRectangleV((Vector2){x*TILE, y*TILE}, (Vector2){TILE, TILE}, c);
             i += 1;
         }
         i += 1;
