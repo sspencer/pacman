@@ -13,13 +13,14 @@ void draw_maze(void) {
     // TODO need conversion between level and board
 
     // --- draw maze ---
-    const float mx = ((float)GAME_WIDTH * TILE) + TILE2;
+    const float gap = TILE / 2.0f;
+    const float mx = ((float)GAME_WIDTH * TILE) + gap;
     const float my = ((float) world.game.level * GAME_HEIGHT * TILE);
     const float mw = GAME_WIDTH * TILE;
     const float mh = GAME_HEIGHT * TILE;
 
     const Rectangle src = (Rectangle){mx, my, mw, mh};
-    const Rectangle dst = (Rectangle){0, 0, mw * ZOOM, mh * ZOOM};
+    const Rectangle dst = (Rectangle){0, 0, mw, mh};
 
     DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 
@@ -55,14 +56,14 @@ void draw_maze(void) {
             exit(1);
     }
 
-    Rectangle dotSrc = (Rectangle){dot_x * TILE, dot_y * TILE, TILE, TILE};
-    Rectangle powerSrc = (Rectangle){power_x * TILE, power_y * TILE, TILE, TILE};
+    const Rectangle dotSrc = (Rectangle){dot_x * TILE, dot_y * TILE, TILE, TILE};
+    const Rectangle powerSrc = (Rectangle){power_x * TILE, power_y * TILE, TILE, TILE};
 
     for (int y = 0; y < GAME_HEIGHT; y+=1) {
         for (int x = 0; x < GAME_WIDTH; x+=1) {
             const tile_t tile = world.game.maze[y][x];
 
-            const Rectangle rec = (Rectangle){(float)x*PIXEL, (float)y*PIXEL, PIXEL, PIXEL};
+            const Rectangle rec = (Rectangle){(float)x*TILE, (float)y*TILE, TILE, TILE};
 
             if (tile == TILE_DOT) {
                 DrawTexturePro(world.game_texture, dotSrc, rec, (Vector2){0, 0}, 0, WHITE);
@@ -77,8 +78,8 @@ void draw_pacman(void) {
     entity_t *p = &world.pacman;
     Vector2 sprite = (Vector2){p->sprite_x[p->dir], p->sprite_y[p->dir]};
 
-    Rectangle src = (Rectangle){sprite.x + (float)p->frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
-    Rectangle dst = (Rectangle){p->x, p->y, SPRITE * ZOOM, SPRITE * ZOOM};
+    const Rectangle src = (Rectangle){sprite.x + (float)p->frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
+    const Rectangle dst = (Rectangle){p->x, p->y, SPRITE, SPRITE};
     DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 }
 
@@ -89,7 +90,7 @@ void draw_ghosts(void) {
         // else if eaten
         // else normal
         const Rectangle src = (Rectangle){g->sprite_x[g->dir], g->sprite_y[g->dir], SPRITE, SPRITE};
-        const Rectangle dst = (Rectangle){g->x, g->y, SPRITE * ZOOM, SPRITE * ZOOM};
+        const Rectangle dst = (Rectangle){g->x, g->y, SPRITE, SPRITE};
         DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
     }
 }

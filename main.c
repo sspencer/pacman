@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 
 #include "raylib.h"
@@ -7,11 +8,10 @@
 #include "pacman.h"
 #include "ghost.h"
 
-
-
 // Define global world declared in game.h
 world_t world;
 Vector2 velocity[DIR_COUNT];
+float zoom = 1.0f;
 
 static void update_world(void) {
     if (world.game.paused) return;
@@ -47,14 +47,34 @@ static void update_world(void) {
 }
 
 static void draw_world(void) {
+    const Camera2D maze_camera = {
+        .offset = {0, TOP_PADDING * TILE * zoom},
+        .target = {0, 0},
+        .rotation = 0.0f,
+        .zoom = zoom
+    };
+
+    const float nudge = TILE/2.0f;
+    const Camera2D sprite_camera = {
+        .offset = {0, TOP_PADDING * TILE * zoom},
+        .target = {nudge, nudge},
+        .rotation = 0.0f,
+        .zoom = zoom
+    };
+
+    BeginMode2D(maze_camera);
     draw_maze();
+    EndMode2D();
+
+    BeginMode2D(sprite_camera);
     draw_ghosts();
     draw_pacman();
+    EndMode2D();
 }
 
 
 Shader chroma_shader() {
-    Shader shader = LoadShader(NULL, "assets/chroma_key.fs");
+    const Shader shader = LoadShader(NULL, "assets/chroma_key.fs");
     const float key_color[3] = {0.0f, 0.0f, 0.0f};
     const float threshold = 0.05f;
     const int key_color_loc = GetShaderLocation(shader, "keyColor");
@@ -66,9 +86,33 @@ Shader chroma_shader() {
     return shader;
 }
 
+static Vector2 monitor_size() {
+    // Need an initial window to reliably get the screen size so an appropriate zoom level may be set
+    // Make the initial window hidden so it won't flash on screen
+    SetConfigFlags(FLAG_WINDOW_HIDDEN);
+
+    // Create a tiny hidden window which forces raylib/GLFW to initialise
+    InitWindow(1, 1, "init-hidden");
+
+    // Now monitor queries are reliable
+    const int currentMon = GetCurrentMonitor();   // should be valid now
+    const int sh = GetMonitorHeight(currentMon);
+    const int sw = GetMonitorWidth(currentMon);
+
+    CloseWindow();
+    ClearWindowState(FLAG_WINDOW_HIDDEN);
+
+    // TODO remove this magic
+    // subtracting magic value from height so zoom isn't too large on my dev machine
+    return (Vector2){(float)sw, (float)(sh-350)};
+}
+
 int main(void) {
-    InitWindow(SCREEN_WIDTH * PIXEL, SCREEN_HEIGHT * PIXEL, "Ms. Pacman");
-    SetWindowPosition(GetMonitorWidth(0) - (SCREEN_WIDTH * PIXEL), 0);
+    const Vector2 mon = monitor_size();
+    zoom = floorf(mon.y / (TILE * SCREEN_HEIGHT));
+
+    InitWindow(SCREEN_WIDTH * TILE * zoom, SCREEN_HEIGHT * TILE * zoom, "Ms. Pacman");
+    SetWindowPosition((int)mon.x - (int)(SCREEN_WIDTH * TILE * zoom), 0);
     SetTraceLogLevel(LOG_WARNING);
     SetTargetFPS(60);
 
@@ -92,19 +136,6 @@ int main(void) {
     init_ghost(&world.ghosts[GHOST_PINKY], pinky_data());
     init_ghost(&world.ghosts[GHOST_SUE], sue_data());
 
-    if (DEBUG) {
-        printf("%d x %d\n", world.game_texture.width, world.game_texture.height);
-        debug_maze(&world.game);
-    }
-
-    // offset camera to allow for score on top
-    static Camera2D camera = {
-        .offset = {0, TOP_PADDING * PIXEL},
-        .target = {0, 0},
-        .rotation = 0.0f,
-        .zoom = 1.0f
-    };
-
     Shader shader = chroma_shader();
 
     while (!WindowShouldClose()) {
@@ -112,11 +143,9 @@ int main(void) {
 
         BeginDrawing();
         ClearBackground(BLACK);
-        BeginMode2D(camera);
         BeginShaderMode(shader);
         draw_world();
         EndShaderMode();
-        EndMode2D();
         EndDrawing();
     }
 

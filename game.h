@@ -8,19 +8,13 @@
 #include <raylib.h>
 #include <stdint.h>
 
-#define DEBUG 0
 #define SCREEN_HEIGHT 36
 #define SCREEN_WIDTH  28
 #define GAME_WIDTH 28
 #define GAME_HEIGHT 31
 #define TOP_PADDING 3
-// sprite width and height
 #define SPRITE 16
 #define TILE 8
-// Half of tile to nudge sprites to center of maze
-#define TILE2 4
-#define ZOOM 3
-#define PIXEL (TILE * ZOOM)
 
 #define DOT_MASK 103481868288
 #define POWER_MASK 4359202964317896252
@@ -148,7 +142,7 @@ typedef struct {
 
 typedef struct {
     uint8_t level;
-    uint8_t maze[SCREEN_HEIGHT][SCREEN_WIDTH];
+    uint8_t maze[GAME_HEIGHT][GAME_WIDTH];
     int score;
     int dots_eaten;
     bool paused;

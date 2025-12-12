@@ -156,14 +156,8 @@ void init_ghost(entity_t *entity, ghost_data_t data) {
     entity->scatter = data.scatter;
 }
 
-static void move_ghost(entity_t *e) {
-    e->x = (e->tx * TILE - TILE2) * ZOOM;
-    e->y = (e->ty * TILE - TILE2) * ZOOM;
-}
-
 void update_ghosts() {
-    for (int i = 0; i < GHOST_COUNT; i+=1) {
-        entity_t *g = &world.ghosts[i];
-        move_ghost(g);
-    }
+    // for (int i = 0; i < GHOST_COUNT; i+=1) {
+    //     entity_t *g = &world.ghosts[i];
+    // }
 }

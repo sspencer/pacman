@@ -88,8 +88,8 @@ static void move_pacman(Vector2 vel, float speed) {
 
         const float clamp = fminf(e->pixels_moved, TILE);
 
-        e->x = (e->tx * TILE + (vel.x * clamp) - TILE2) * ZOOM;
-        e->y = (e->ty * TILE + (vel.y * clamp) - TILE2) * ZOOM;
+        e->x = ((float)e->tx * TILE + (vel.x * clamp));
+        e->y = ((float)e->ty * TILE + (vel.y * clamp));
     }
 }
 
