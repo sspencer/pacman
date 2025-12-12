@@ -94,3 +94,16 @@ void draw_ghosts(void) {
         DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
     }
 }
+
+void draw_checkerboard(void) {
+    Color c1 = (Color){255, 255, 255, 120};
+    Color c2 = (Color){255, 255, 255, 80};
+    int i = 0;
+    for (int y = 0; y < GAME_HEIGHT; y+=1) {
+        for (int x = 0; x < GAME_WIDTH; x+=1) {
+            DrawRectangleV((Vector2){x*TILE, y*TILE}, (Vector2){TILE, TILE}, (i % 2 == 0) ? c1 : c2);
+            i += 1;
+        }
+        i += 1;
+    }
+}

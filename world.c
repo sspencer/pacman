@@ -22,21 +22,11 @@ void update_world(void) {
         map_maze(&world.game);
     }
 
-    if (IsKeyPressed(KEY_LEFT)) {
-        world.pacman.next_dir = DIR_WEST;
-    }
-
-    if (IsKeyPressed(KEY_RIGHT)) {
-        world.pacman.next_dir = DIR_EAST;
-    }
-
-    if (IsKeyPressed(KEY_UP)) {
-        world.pacman.next_dir = DIR_NORTH;
-    }
-
-    if (IsKeyPressed(KEY_DOWN)) {
-        world.pacman.next_dir = DIR_SOUTH;
-    }
+    if (IsKeyPressed(KEY_LEFT)) world.pacman.next_dir = DIR_WEST;
+    if (IsKeyPressed(KEY_RIGHT)) world.pacman.next_dir = DIR_EAST;
+    if (IsKeyPressed(KEY_UP)) world.pacman.next_dir = DIR_NORTH;
+    if (IsKeyPressed(KEY_DOWN)) world.pacman.next_dir = DIR_SOUTH;
+    if (IsKeyPressed(KEY_D)) world.game.debug = !world.game.debug;
 
     update_pacman();
     update_ghosts();
@@ -60,6 +50,7 @@ void draw_world(float zoom, Shader shader) {
 
     BeginMode2D(maze_camera);
     draw_maze();
+    if (world.game.debug) draw_checkerboard();
     EndMode2D();
 
     BeginShaderMode(shader); // shader makes BLACK transparent

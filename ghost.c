@@ -80,6 +80,9 @@ ghost_data_t inky_data() {
         .leave = inky_leave,
         .scatter = inky_scatter
     };
+
+    data.start = (Vector2){18, 11}; // TODO remove
+
     return data;
 }
 
@@ -104,6 +107,8 @@ ghost_data_t pinky_data() {
         .leave = pinky_leave,
         .scatter = pinky_scatter
     };
+    data.start = (Vector2){9, 11}; // TODO remove
+
     return data;
 }
 
@@ -127,6 +132,8 @@ ghost_data_t sue_data() {
         .leave = sue_leave,
         .scatter = sue_scatter
     };
+    data.start = (Vector2){9, 4}; // TODO remove
+
     return data;
 }
 

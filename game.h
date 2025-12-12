@@ -146,6 +146,7 @@ typedef struct {
     int score;
     int dots_eaten;
     bool paused;
+    bool debug;
 } game_t;
 
 // Global world holds game state and resources so they don't need to be passed around

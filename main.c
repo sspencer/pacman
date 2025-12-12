@@ -68,6 +68,7 @@ int main(void) {
     world.game.paused = false;
     world.game.score = 0;
     world.game.dots_eaten = 0;
+    world.game.debug = false;
 
     map_maze(&world.game);
 
