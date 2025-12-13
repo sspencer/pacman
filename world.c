@@ -55,21 +55,20 @@ static void update_ghost_state(void) {
 
 void update_world(void) {
     if (IsKeyPressed(KEY_P)) world.game.paused = !world.game.paused;
-
-    if (world.game.paused) return;
-
-    update_ghost_state();
-
+    if (IsKeyPressed(KEY_D)) world.game.debug = !world.game.debug;
     if (IsKeyPressed(KEY_N)) {
         world.game.level = (world.game.level + 1) % 5;
         map_maze(&world.game);
     }
 
+    if (world.game.paused) return;
+
+    update_ghost_state();
+
     if (IsKeyPressed(KEY_LEFT)) world.pacman.next_dir = DIR_WEST;
     if (IsKeyPressed(KEY_RIGHT)) world.pacman.next_dir = DIR_EAST;
     if (IsKeyPressed(KEY_UP)) world.pacman.next_dir = DIR_NORTH;
     if (IsKeyPressed(KEY_DOWN)) world.pacman.next_dir = DIR_SOUTH;
-    if (IsKeyPressed(KEY_D)) world.game.debug = !world.game.debug;
     if (IsKeyPressed(KEY_C)) {
         for (int i = 0; i < GHOST_COUNT; i++) {
             world.ghosts[i].state = GHOST_CHASE;

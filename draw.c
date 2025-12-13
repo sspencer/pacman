@@ -69,6 +69,8 @@ void draw_maze(void) {
                 DrawTexturePro(world.game_texture, dotSrc, rec, (Vector2){0, 0}, 0, WHITE);
             } else if (tile == TILE_POWER) {
                 DrawTexturePro(world.game_texture, powerSrc, rec, (Vector2){0, 0}, 0, WHITE);
+            } else if (tile == TILE_TUNNEL) {
+                DrawRectangleV((Vector2){x*TILE, y*TILE}, (Vector2){TILE, TILE}, SKYBLUE);
             }
         }
     }
