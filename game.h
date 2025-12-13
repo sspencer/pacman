@@ -152,6 +152,7 @@ typedef struct {
     uint8_t maze[GAME_HEIGHT][GAME_WIDTH];
     int score;
     int dots_eaten;
+    double level_time;
     bool paused;
     bool debug;
 } game_t;

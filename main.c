@@ -73,7 +73,15 @@ int main(void) {
 
     const Shader shader = chroma_shader();
 
+    world.game.level_time = 0.0; // TODO reset for every level
+
+    double last_frame_time = GetTime();
+
     while (!WindowShouldClose()) {
+        const double current_time = GetTime();
+        if (!world.game.paused) world.game.level_time += (current_time - last_frame_time);
+        last_frame_time = current_time;
+
         update_world();
 
         BeginDrawing();
