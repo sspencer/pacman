@@ -101,7 +101,7 @@ void draw_world(float zoom, Shader shader) {
 
     BeginMode2D(maze_camera);
     draw_maze();
-    if (world.game.debug) draw_checkerboard();
+    //if (world.game.debug) draw_checkerboard();
     EndMode2D();
 
     BeginShaderMode(shader); // shader makes BLACK transparent

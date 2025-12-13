@@ -75,10 +75,40 @@ static float pacman_speed() {
 static bool can_pacman_move(entity_t *p, dir_t dir) {
     game_t *game = &world.game;
 
-    const Vector2 next_tile = get_next_tile(p, dir);
-    if (next_tile.x < 0 || next_tile.x >= GAME_WIDTH || next_tile.y < 0 || next_tile.y >= GAME_HEIGHT) return false;
+    // Determine the correct anchor tile for collision checks based on the axis
+    // of intended movement. When turning perpendicular, we should base the
+    // check on the rounded coordinate along the perpendicular axis instead of
+    // the source tile, otherwise valid turns at junctions can be rejected.
+    int anchor_tx = (int)p->tile.x;
+    int anchor_ty = (int)p->tile.y;
 
-    return game->maze[(int)next_tile.y][(int)next_tile.x] != TILE_WALL;
+    if (dir == DIR_NORTH || dir == DIR_SOUTH) {
+        // Turning/moving vertically: anchor column should follow our current X position
+        // rounded to the nearest tile column.
+        int col = (int)lroundf(p->pos.x / (float)TILE);
+        if (col < 0) col = 0; else if (col >= GAME_WIDTH) col = GAME_WIDTH - 1;
+        anchor_tx = col;
+    } else { // DIR_EAST or DIR_WEST
+        // Turning/moving horizontally: anchor row should follow our current Y position
+        // rounded to the nearest tile row.
+        int row = (int)lroundf(p->pos.y / (float)TILE);
+        if (row < 0) row = 0; else if (row >= GAME_HEIGHT) row = GAME_HEIGHT - 1;
+        anchor_ty = row;
+    }
+
+    Vector2 anchor = (Vector2){(float)anchor_tx, (float)anchor_ty};
+    // Compute the next tile from the corrected anchor.
+    switch (dir) {
+        case DIR_NORTH: anchor.y -= 1; break;
+        case DIR_SOUTH: anchor.y += 1; break;
+        case DIR_EAST:  anchor.x += 1; break;
+        case DIR_WEST:  anchor.x -= 1; break;
+        default: break;
+    }
+
+    if (anchor.x < 0 || anchor.x >= GAME_WIDTH || anchor.y < 0 || anchor.y >= GAME_HEIGHT) return false;
+
+    return game->maze[(int)anchor.y][(int)anchor.x] != TILE_WALL;
 }
 
 static inline bool dirs_opposite(dir_t a, dir_t b) {
@@ -139,8 +169,9 @@ void update_pacman() {
                 p->pixels_moved = 0.0f;
             }
         } else if (p->dir != p->next_dir) {
-            // Turning perpendicular. Avoid snapping backward when pressed against a wall:
-            // set the anchor along the soon-to-be snapped perpendicular axis to match current position.
+            // Turning perpendicular. Keep Pacman centered by aligning the anchor on the
+            // perpendicular axis to the current position, and start the new axis from
+            // the tile center (reset intra-tile progress).
             if (p->next_dir == DIR_NORTH || p->next_dir == DIR_SOUTH) {
                 int new_tx = (int)lroundf(p->pos.x / (float)TILE);
                 if (new_tx < 0) new_tx = 0; else if (new_tx >= GAME_WIDTH) new_tx = GAME_WIDTH - 1;
@@ -150,10 +181,9 @@ void update_pacman() {
                 if (new_ty < 0) new_ty = 0; else if (new_ty >= GAME_HEIGHT) new_ty = GAME_HEIGHT - 1;
                 p->tile.y = (float)new_ty;
             }
-            // If we were pushing into a wall in the previous direction, drop residual progress.
-            if (!can_pacman_move(p, p->dir)) {
-                p->pixels_moved = 0.0f;
-            }
+            // Always reset progress when switching axes so the new movement starts
+            // from the tile center along the new axis, preventing off-center turns.
+            p->pixels_moved = 0.0f;
         }
         p->dir = p->next_dir;
         can_move = true;

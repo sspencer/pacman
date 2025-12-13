@@ -83,6 +83,18 @@ void draw_pacman(void) {
     const Rectangle src = (Rectangle){sprite.x + (float)p->frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
     const Rectangle dst = (Rectangle){p->pos.x, p->pos.y, SPRITE, SPRITE};
     DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+
+    // Debug overlay to visualize alignment between intended tile center and actual position
+    if (world.game.debug) {
+        const Rectangle intended = (Rectangle){p->tile.x * TILE, p->tile.y * TILE, SPRITE, SPRITE};
+        const Rectangle actual   = (Rectangle){p->pos.x, p->pos.y, SPRITE, SPRITE};
+        DrawRectangleLinesEx(intended, 1, GREEN);
+        DrawRectangleLinesEx(actual, 1, RED);
+
+        const float dx = p->pos.x - p->tile.x * TILE;
+        const float dy = p->pos.y - p->tile.y * TILE;
+        DrawText(TextFormat("dx=%.1f dy=%.1f", dx, dy), (int)p->pos.x, (int)(p->pos.y - 8), 8, YELLOW);
+    }
 }
 
 void draw_ghosts(void) {
@@ -94,7 +106,7 @@ void draw_ghosts(void) {
         const Rectangle src = (Rectangle){g->sprite_x[g->dir] + (float)g->frame_index * SPRITE, g->sprite_y[g->dir], SPRITE, SPRITE};
         const Rectangle dst = (Rectangle){g->pos.x, g->pos.y, SPRITE, SPRITE};
         DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
-
+        /*
         if (world.game.debug) {
             Color c;
             if (i == GHOST_BLINKY) c = RED;
@@ -104,6 +116,7 @@ void draw_ghosts(void) {
 
             DrawRectangleLinesEx((Rectangle){g->target.x *TILE, g->target.y*TILE, SPRITE, SPRITE}, 2, c);
         }
+        */
     }
 }
 
