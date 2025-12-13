@@ -81,6 +81,13 @@ static bool can_pacman_move(entity_t *p, dir_t dir) {
     return game->maze[(int)next_tile.y][(int)next_tile.x] != TILE_WALL;
 }
 
+static inline bool dirs_opposite(dir_t a, dir_t b) {
+    return (a == DIR_EAST && b == DIR_WEST) ||
+           (a == DIR_WEST && b == DIR_EAST) ||
+           (a == DIR_NORTH && b == DIR_SOUTH) ||
+           (a == DIR_SOUTH && b == DIR_NORTH);
+}
+
 void update_pacman() {
     game_t *game = &world.game;
     entity_t *p = &world.pacman;
@@ -101,11 +108,55 @@ void update_pacman() {
         p->eating_dot = false;
     }
 
-    // At the new intersection, decide the next move
+    // Decide next move. Allow smooth reversal on the same axis without a visual gap
     if (can_pacman_move(p, p->next_dir)) {
+        if (dirs_opposite(p->dir, p->next_dir)) {
+            // Remap anchor tile so the world position remains continuous after reversing.
+            // Also mirror pixels_moved so world position does not jump.
+            // If we were blocked on the old direction, don't remap; just reset progress.
+            if (can_pacman_move(p, p->dir)) {
+                switch (p->dir) {
+                    case DIR_EAST:  // reversing to WEST -> anchor one tile to the east
+                        if (p->tile.x + 1 < GAME_WIDTH) p->tile.x += 1;
+                        break;
+                    case DIR_WEST:  // reversing to EAST -> anchor one tile to the west
+                        if (p->tile.x - 1 >= 0) p->tile.x -= 1;
+                        break;
+                    case DIR_NORTH: // reversing to SOUTH -> anchor one tile above
+                        if (p->tile.y - 1 >= 0) p->tile.y -= 1;
+                        break;
+                    case DIR_SOUTH: // reversing to NORTH -> anchor one tile below
+                        if (p->tile.y + 1 < GAME_HEIGHT) p->tile.y += 1;
+                        break;
+                    default: break;
+                }
+                // Mirror the progress within the tile: m' = TILE - m
+                if (p->pixels_moved > 0.0f && p->pixels_moved < TILE) {
+                    p->pixels_moved = TILE - p->pixels_moved;
+                }
+            } else {
+                // Blocked on old axis: start fresh in the opposite direction without any nudge.
+                p->pixels_moved = 0.0f;
+            }
+        } else if (p->dir != p->next_dir) {
+            // Turning perpendicular. Avoid snapping backward when pressed against a wall:
+            // set the anchor along the soon-to-be snapped perpendicular axis to match current position.
+            if (p->next_dir == DIR_NORTH || p->next_dir == DIR_SOUTH) {
+                int new_tx = (int)lroundf(p->pos.x / (float)TILE);
+                if (new_tx < 0) new_tx = 0; else if (new_tx >= GAME_WIDTH) new_tx = GAME_WIDTH - 1;
+                p->tile.x = (float)new_tx;
+            } else { // turning to EAST/WEST
+                int new_ty = (int)lroundf(p->pos.y / (float)TILE);
+                if (new_ty < 0) new_ty = 0; else if (new_ty >= GAME_HEIGHT) new_ty = GAME_HEIGHT - 1;
+                p->tile.y = (float)new_ty;
+            }
+            // If we were pushing into a wall in the previous direction, drop residual progress.
+            if (!can_pacman_move(p, p->dir)) {
+                p->pixels_moved = 0.0f;
+            }
+        }
         p->dir = p->next_dir;
         can_move = true;
-        // else if in the tunnel
     } else if (can_pacman_move(p, p->dir)) {
         can_move = true;
     }
