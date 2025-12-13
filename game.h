@@ -124,8 +124,10 @@ typedef struct {
 
 
 typedef struct {
-    float x, y; // pixel position
-    int tx, ty; // tile position
+    //float x, y; // pixel position
+    Vector2 pos;
+    //int tx, ty; // tile position
+    Vector2 tile;
     float pixels_moved;
     dir_t dir;
     dir_t next_dir;
@@ -140,7 +142,6 @@ typedef struct {
     // ghosts
     ghost_state_t state;
     float pixels_moved_in_dir;
-    //int target_x, target_y; // ghost's target square
     Vector2 (*chase)(void); // ghosts only
     bool (*leave)(void); // ghosts only
     Vector2 (*scatter)(void); // ghosts only
@@ -165,8 +166,10 @@ typedef struct {
     Image game_image;
 } world_t;
 
-extern Vector2 velocity[DIR_COUNT];
-
 extern world_t world;
+
+void set_next_tile(entity_t *e, dir_t dir);
+Vector2 get_next_tile(entity_t *e, dir_t dir);
+void move_entity(entity_t *e, float speed);
 
 #endif //PACMAN_GAME_H

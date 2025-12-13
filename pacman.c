@@ -14,10 +14,11 @@
 #define DOT_EAT_PAUSE 1
 
 void init_pacman(entity_t *entity) {
-    entity->tx = 13;
-    entity->ty = 23;
-    entity->x = (float)entity->tx * TILE;
-    entity->y = (float)entity->ty * TILE;
+    const float tile_x = 13, tile_y = 23;
+    entity->pos.x = tile_x * TILE;
+    entity->pos.y = tile_y * TILE;
+    entity->tile.x = tile_x;
+    entity->tile.y = tile_y;
 
     entity->sprite_x[DIR_EAST] = 456;
     entity->sprite_y[DIR_EAST] = 0;
@@ -71,27 +72,13 @@ static float pacman_speed() {
     return (1.023f * speed) / 60.0f;
 }
 
-static bool can_pacman_move(Vector2 dir) {
+static bool can_pacman_move(entity_t *p, dir_t dir) {
     game_t *game = &world.game;
-    entity_t *p = &world.pacman;
 
-    if (dir.x == 0 && dir.y == 0) return false;
-    const Vector2 next_tile = (Vector2){p->tx + dir.x, p->ty + dir.y};
+    const Vector2 next_tile = get_next_tile(p, dir);
     if (next_tile.x < 0 || next_tile.x >= GAME_WIDTH || next_tile.y < 0 || next_tile.y >= GAME_HEIGHT) return false;
 
     return game->maze[(int)next_tile.y][(int)next_tile.x] != TILE_WALL;
-}
-
-static void move_pacman(Vector2 vel, float speed) {
-    entity_t *e = &world.pacman;
-    if (vel.x != 0 || vel.y != 0) {
-        e->pixels_moved += speed;
-
-        const float clamp = fminf(e->pixels_moved, TILE);
-
-        e->x = ((float)e->tx * TILE + (vel.x * clamp));
-        e->y = ((float)e->ty * TILE + (vel.y * clamp));
-    }
 }
 
 void update_pacman() {
@@ -106,36 +93,35 @@ void update_pacman() {
         return;
     }
 
-    Vector2 vel = (Vector2){0, 0};
+    bool can_move = false;
 
     if (p->pixels_moved >= TILE) {
-        p->tx += (int)velocity[p->dir].x;
-        p->ty += (int)velocity[p->dir].y;
+        set_next_tile(p, p->dir);
         p->pixels_moved = 0;
         p->eating_dot = false;
     }
 
     // At the new intersection, decide the next move
-    if (can_pacman_move(velocity[p->next_dir])) {
+    if (can_pacman_move(p, p->next_dir)) {
         p->dir = p->next_dir;
-        vel = velocity[p->dir];
+        can_move = true;
         // else if in the tunnel
-    } else if (can_pacman_move(velocity[p->dir])) {
-        vel = velocity[p->dir];
+    } else if (can_pacman_move(p, p->dir)) {
+        can_move = true;
     }
 
 
     if (!p->eating_dot) {
-        if (p->tx >= 0 && p->tx < GAME_WIDTH && p->ty >= 0 && p->ty < GAME_HEIGHT) {
-            tile_t tile = game->maze[p->ty][p->tx];
+        if (p->tile.x >= 0 && p->tile.x < GAME_WIDTH && p->tile.y >= 0 && p->tile.y < GAME_HEIGHT) {
+            tile_t tile = game->maze[(int)p->tile.y][(int)p->tile.x];
             if (tile == TILE_DOT) {
-                game->maze[p->ty][p->tx] = TILE_EMPTY;
+                game->maze[(int)p->tile.y][(int)p->tile.x] = TILE_EMPTY;
                 p->eating_dot = true;
                 game->dots_eaten++;
                 game->score += 10;
                 p->frames_to_pause = DOT_EAT_PAUSE;
             } else if (tile == TILE_POWER) {
-                game->maze[p->ty][p->tx] = TILE_EMPTY;
+                game->maze[(int)p->tile.y][(int)p->tile.x] = TILE_EMPTY;
                 p->eating_dot = true;
                 game->score += 50;
                 if (p->frames_to_pause == 0) { // don't overwrite power eat
@@ -143,7 +129,7 @@ void update_pacman() {
                 }
             }
         } else {
-            printf("Pacman went off the map! tx=%d, ty=%d\n", p->tx, p->ty);
+            printf("Pacman went off the map! tx=%f, ty=%f\n", p->tile.x, p->tile.y);
             exit(1);
         }
     }
@@ -155,6 +141,7 @@ void update_pacman() {
     //     }
     // }
 
-    float speed = pacman_speed();
-    move_pacman(vel, speed);
+    if (can_move) {
+        move_entity(p, pacman_speed());
+    }
 }

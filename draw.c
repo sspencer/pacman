@@ -79,7 +79,7 @@ void draw_pacman(void) {
     Vector2 sprite = (Vector2){p->sprite_x[p->dir], p->sprite_y[p->dir]};
 
     const Rectangle src = (Rectangle){sprite.x + (float)p->frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
-    const Rectangle dst = (Rectangle){p->x, p->y, SPRITE, SPRITE};
+    const Rectangle dst = (Rectangle){p->pos.x, p->pos.y, SPRITE, SPRITE};
     DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 }
 
@@ -90,7 +90,7 @@ void draw_ghosts(void) {
         // else if eaten
         // else normal
         const Rectangle src = (Rectangle){g->sprite_x[g->dir] + (float)g->frame_index * SPRITE, g->sprite_y[g->dir], SPRITE, SPRITE};
-        const Rectangle dst = (Rectangle){g->x, g->y, SPRITE, SPRITE};
+        const Rectangle dst = (Rectangle){g->pos.x, g->pos.y, SPRITE, SPRITE};
         DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
     }
 }

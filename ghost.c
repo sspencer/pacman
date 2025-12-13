@@ -26,7 +26,7 @@ static int maze_top(int level) {
 }
 
 Vector2 blinky_chase(void) {
-    return (Vector2){(float)world.pacman.tx, (float)world.pacman.ty};
+    return (Vector2){(float)world.pacman.tile.x, (float)world.pacman.tile.y};
 }
 
 bool blinky_leave(void) {
@@ -51,7 +51,7 @@ ghost_data_t blinky_data() {
 }
 
 Vector2 inky_chase(void) {
-    return (Vector2){(float)world.pacman.tx, (float)world.pacman.ty};
+    return (Vector2){(float)world.pacman.tile.x, (float)world.pacman.tile.y};
 }
 
 bool inky_leave(void) {
@@ -79,7 +79,7 @@ ghost_data_t inky_data() {
 }
 
 Vector2 pinky_chase(void) {
-    return (Vector2){(float)world.pacman.tx, (float)world.pacman.ty};
+    return (Vector2){world.pacman.tile.x, world.pacman.tile.y};
 }
 
 bool pinky_leave(void) {
@@ -106,7 +106,7 @@ ghost_data_t pinky_data() {
 }
 
 Vector2 sue_chase(void) {
-    return (Vector2){(float)world.pacman.tx, (float)world.pacman.ty};
+    return (Vector2){world.pacman.tile.x, world.pacman.tile.y};
 }
 
 bool sue_leave(void) {
@@ -132,10 +132,10 @@ ghost_data_t sue_data() {
 }
 
 void init_ghost(entity_t *entity, ghost_data_t data) {
-    entity->tx = (int)data.start.x;
-    entity->ty = (int)data.start.y;
-    entity->x = (float)entity->tx * TILE;
-    entity->y = (float)entity->ty * TILE;
+    entity->tile.x = data.start.x;
+    entity->tile.y = data.start.y;
+    entity->pos.x = entity->tile.x * TILE;
+    entity->pos.y = entity->tile.y * TILE;
     entity->pixels_moved = 0;
 
     entity->sprite_x[DIR_EAST] = 456;
@@ -208,8 +208,7 @@ static dir_t choose_ghost_dir(entity_t *g, Vector2 target) {
 
     for (int i = 0; i < DIR_COUNT; i++) {
         if (i == opposite_dir(g->dir)) continue;
-        const Vector2 v = velocity[i];
-        const Vector2 next_tile = (Vector2){g->tx + v.x, g->ty + v.y};
+        Vector2 next_tile = get_next_tile(g, i);
         if (next_tile.x < 0 || next_tile.x >= GAME_WIDTH || next_tile.y < 0 || next_tile.y >= GAME_HEIGHT) continue;
         if (world.game.maze[(int)next_tile.y][(int)next_tile.x] == TILE_WALL) continue;
         valid_dirs |= 1 << i;
@@ -225,8 +224,7 @@ static dir_t choose_ghost_dir(entity_t *g, Vector2 target) {
     for (int i = 0; i < DIR_COUNT; i++) {
         if (valid_dirs & 1 << i) {
             const dir_t dir = (dir_t)i;
-            const Vector2 v = velocity[i];
-            const Vector2 next_tile = (Vector2){g->tx + v.x, g->ty + v.y};
+            Vector2 next_tile = get_next_tile(g, i);
             float dist = dist_between(target, next_tile);
             if (dist < min_distance) {
                 min_distance = dist;
@@ -244,15 +242,14 @@ static void move_ghost(entity_t *g, Vector2 vel, float speed) {
 
         const float clamp = fminf(g->pixels_moved, TILE);
 
-        g->x = ((float)g->tx * TILE + (vel.x * clamp));
-        g->y = ((float)g->ty * TILE + (vel.y * clamp));
+        g->pos.x = (g->tile.x * TILE + (vel.x * clamp));
+        g->pos.y = (g->tile.y * TILE + (vel.y * clamp));
     }
 }
 static void update_ghost(entity_t *g) {
     update_ghost_frame(g);
     if (g->pixels_moved >= TILE) {
-        g->tx += (int)velocity[g->dir].x;
-        g->ty += (int)velocity[g->dir].y;
+        set_next_tile(g, g->dir);
         g->pixels_moved = 0;
     }
 
@@ -264,14 +261,13 @@ static void update_ghost(entity_t *g) {
     dir_t current_dir = g->dir;
     g->dir = choose_ghost_dir(g, target);
 
-    Vector2 vel = velocity[g->dir];
     if (current_dir == g->dir) {
          g->pixels_moved_in_dir += speed;
     } else {
          g->pixels_moved_in_dir = speed;
     }
 
-    move_ghost(g, vel, speed);
+    move_entity(g, speed);
 }
 
 void update_ghosts() {

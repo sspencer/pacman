@@ -9,9 +9,7 @@
 #include "ghost.h"
 #include "world.h"
 
-// Define global world declared in game.h
 world_t world;
-Vector2 velocity[DIR_COUNT];
 float screen_zoom = 1.0f;
 
 Shader chroma_shader() {
@@ -56,11 +54,6 @@ int main(void) {
     SetWindowPosition((int)mon.x - (int)(SCREEN_WIDTH * TILE * screen_zoom), 0);
     SetTraceLogLevel(LOG_WARNING);
     SetTargetFPS(60);
-
-    velocity[DIR_NORTH] = (Vector2){0, -1};
-    velocity[DIR_SOUTH] = (Vector2){0, 1};
-    velocity[DIR_EAST] = (Vector2){1, 0};
-    velocity[DIR_WEST] = (Vector2){-1, 0};
 
     world.game_texture = LoadTexture("assets/game.png");
     world.game_image = LoadImageFromTexture(world.game_texture);

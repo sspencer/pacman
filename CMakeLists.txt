@@ -32,7 +32,8 @@ add_executable(${PROJECT_NAME} main.c
         ghost.c
         ghost.h
         world.c
-        world.h)
+        world.h
+        game.c)
 
 target_link_libraries(${PROJECT_NAME} raylib)
 
