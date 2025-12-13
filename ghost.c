@@ -291,6 +291,8 @@ static void update_ghost(entity_t *g) {
         target = g->scatter();
     }
 
+    g->target = target;
+
     const dir_t current_dir = g->dir;
 
     if (is_in_tunnel(g->tile)) {

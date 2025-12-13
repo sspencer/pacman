@@ -94,6 +94,16 @@ void draw_ghosts(void) {
         const Rectangle src = (Rectangle){g->sprite_x[g->dir] + (float)g->frame_index * SPRITE, g->sprite_y[g->dir], SPRITE, SPRITE};
         const Rectangle dst = (Rectangle){g->pos.x, g->pos.y, SPRITE, SPRITE};
         DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+
+        if (world.game.debug) {
+            Color c;
+            if (i == GHOST_BLINKY) c = RED;
+            else if (i == GHOST_PINKY) c = MAGENTA;
+            else if (i == GHOST_INKY) c = SKYBLUE;
+            else c = ORANGE;
+
+            DrawRectangleLinesEx((Rectangle){g->target.x *TILE, g->target.y*TILE, SPRITE, SPRITE}, 2, c);
+        }
     }
 }
 

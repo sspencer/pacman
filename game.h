@@ -124,10 +124,9 @@ typedef struct {
 
 
 typedef struct {
-    //float x, y; // pixel position
     Vector2 pos;
-    //int tx, ty; // tile position
     Vector2 tile;
+    Vector2 target; // TODO temp for ghost debugging
     float pixels_moved;
     dir_t dir;
     dir_t next_dir;
