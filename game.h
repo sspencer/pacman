@@ -170,7 +170,8 @@ typedef struct {
 extern world_t world;
 
 void set_next_tile(entity_t *e, dir_t dir);
-Vector2 get_next_tile(entity_t *e, dir_t dir);
+Vector2 get_next_tile(const entity_t *e, dir_t dir);
 void move_entity(entity_t *e, float speed);
+bool is_in_tunnel(Vector2 pos);
 
 #endif //PACMAN_GAME_H

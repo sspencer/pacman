@@ -5,6 +5,17 @@
 
 #include <math.h>
 
+bool is_in_tunnel(Vector2 pos) {
+    const int ty = (int)pos.y;
+    if (ty < 0 || ty >= GAME_HEIGHT) return false;
+
+    const bool row_has_tunnel = world.game.maze[ty][0] == TILE_TUNNEL;
+
+    if (!row_has_tunnel) return false;
+
+    return ((int)pos.x <= 0 || (int)pos.x >= GAME_WIDTH-1);
+}
+
 void set_next_tile(entity_t *e, dir_t dir) {
     switch (dir) {
         case DIR_NORTH: e->tile.y--; break;
@@ -15,7 +26,7 @@ void set_next_tile(entity_t *e, dir_t dir) {
     }
 }
 
-Vector2 get_next_tile(entity_t *e, dir_t dir) {
+Vector2 get_next_tile(const entity_t *e, dir_t dir) {
     Vector2 tile = (Vector2){e->tile.x, e->tile.y};
     switch (dir) {
         case DIR_NORTH: tile.y--; break;
