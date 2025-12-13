@@ -8,14 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef enum {
-    EMPTY_MASK = 0,
-    NORTH_MASK = 1,
-    SOUTH_MASK = 2,
-    EAST_MASK = 4,
-    WEST_MASK = 8,
-} dir_mask_t;
-
 static int maze_top(int level) {
     // TODO change from level to board
     if (level == 2) { // should be "board" not level
@@ -26,7 +18,7 @@ static int maze_top(int level) {
 }
 
 Vector2 blinky_chase(void) {
-    return (Vector2){(float)world.pacman.tile.x, (float)world.pacman.tile.y};
+    return (Vector2){world.pacman.tile.x, world.pacman.tile.y};
 }
 
 bool blinky_leave(void) {
@@ -51,7 +43,28 @@ ghost_data_t blinky_data() {
 }
 
 Vector2 inky_chase(void) {
-    return (Vector2){(float)world.pacman.tile.x, (float)world.pacman.tile.y};
+    entity_t *p = &world.pacman;
+    entity_t *blinky = &world.ghosts[GHOST_BLINKY];
+
+    float vx = 0.0f, vy = 0.0f;
+
+    // reproduces original chase bug for NORTH
+    // to remove "bug", set vx=0
+    switch (p->dir) {
+        case DIR_NORTH: vx = -2.0f, vy = 2.0f; break;
+        case DIR_SOUTH: vy = 2.0f; break;
+        case DIR_EAST: vx = 2.0f; break;
+        default: vx = -2.0f; break;
+    }
+
+    const Vector2 pivot = (Vector2){p->tile.x + vx, p->tile.y + vy};
+    const float dx = pivot.x - p->tile.x;
+    const float dy = pivot.y - p->tile.y;
+
+    return (Vector2){
+        blinky->tile.x + 2 * dx,
+        blinky->tile.y + 2 * dy
+    };
 }
 
 bool inky_leave(void) {
@@ -79,7 +92,21 @@ ghost_data_t inky_data() {
 }
 
 Vector2 pinky_chase(void) {
-    return (Vector2){world.pacman.tile.x, world.pacman.tile.y};
+    entity_t *p = &world.pacman;
+
+    float vx = 0.0f, vy = 0.0f;
+
+    // reproduces original chase bug for NORTH
+    // to remove "bug", set vx=0
+    switch (p->dir) {
+        case DIR_NORTH: vx = -4.0f, vy = -4.0f; break;
+        case DIR_SOUTH: vy = 4.0f; break;
+        case DIR_EAST: vx = 4.0f; break;
+        default: vx = -4.0f; break;
+    }
+
+    const Vector2 pivot = (Vector2){p->tile.x + vx, p->tile.y + vy};
+    return pivot;
 }
 
 bool pinky_leave(void) {
@@ -105,17 +132,27 @@ ghost_data_t pinky_data() {
     return data;
 }
 
+Vector2 sue_scatter(void) {
+    return (Vector2){26, 29};
+}
+
 Vector2 sue_chase(void) {
-    return (Vector2){world.pacman.tile.x, world.pacman.tile.y};
+    entity_t *p = &world.pacman;
+    entity_t *g = &world.ghosts[GHOST_SUE];
+    float dx = p->tile.x - g->tile.x;
+    float dy = p->tile.y - g->tile.y;
+    float dist = sqrtf(dx * dx + dy * dy);
+    if (dist > 8) {
+        return p->tile;
+    }
+
+    return sue_scatter();
 }
 
 bool sue_leave(void) {
     return true;
 }
 
-Vector2 sue_scatter(void) {
-    return (Vector2){26, 29};
-}
 ghost_data_t sue_data() {
     ghost_data_t data = {
         .sprite = {0, 112},
@@ -245,8 +282,12 @@ static void update_ghost(entity_t *g) {
 
     float speed = ghost_speed(world.game.level);
 
-    // if (g.state == GHOST_SCATTER)
-    const Vector2 target = g->scatter();
+    Vector2 target;
+    if (g->state == GHOST_CHASE) {
+        target = g->chase();
+    } else {
+        target = g->scatter();
+    }
 
     dir_t current_dir = g->dir;
     g->dir = choose_ghost_dir(g, target);

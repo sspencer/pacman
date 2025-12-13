@@ -27,6 +27,16 @@ void update_world(void) {
     if (IsKeyPressed(KEY_UP)) world.pacman.next_dir = DIR_NORTH;
     if (IsKeyPressed(KEY_DOWN)) world.pacman.next_dir = DIR_SOUTH;
     if (IsKeyPressed(KEY_D)) world.game.debug = !world.game.debug;
+    if (IsKeyPressed(KEY_C)) {
+        for (int i = 0; i < GHOST_COUNT; i++) {
+            world.ghosts[i].state = GHOST_CHASE;
+        }
+    }
+    if (IsKeyPressed(KEY_S)) {
+        for (int i = 0; i < GHOST_COUNT; i++) {
+            world.ghosts[i].state = GHOST_SCATTER;
+        }
+    }
 
     update_pacman();
     update_ghosts();
