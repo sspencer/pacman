@@ -41,11 +41,19 @@ void move_entity(entity_t *e, float speed) {
     e->pixels_moved += speed;
 
     const float clamp = fminf(e->pixels_moved, TILE);
+    // Keep entity centered in corridors by snapping the perpendicular axis
+    // to the exact tile grid each frame. This avoids gradual drift and ensures
+    // clean alignment when turning (e.g., SOUTH -> WEST).
+    if (e->dir == DIR_EAST || e->dir == DIR_WEST) {
+        e->pos.y = e->tile.y * TILE;
+    } else { // moving NORTH or SOUTH
+        e->pos.x = e->tile.x * TILE;
+    }
 
     switch(e->dir) {
         case DIR_NORTH: e->pos.y = e->tile.y * TILE - clamp; break;
         case DIR_SOUTH: e->pos.y = e->tile.y * TILE + clamp; break;
-        case DIR_EAST: e->pos.x = e->tile.x * TILE + clamp; break;
-        default: e->pos.x = e->tile.x * TILE - clamp; break;
+        case DIR_EAST:  e->pos.x = e->tile.x * TILE + clamp; break;
+        default:        e->pos.x = e->tile.x * TILE - clamp; break;
     }
 }

@@ -54,7 +54,7 @@ static void update_ghost_state(void) {
 }
 
 void update_world(void) {
-    if (IsKeyPressed(KEY_P)) world.game.paused = !world.game.paused;
+    if (IsKeyPressed(KEY_P) || IsKeyPressed(KEY_SPACE)) world.game.paused = !world.game.paused;
     if (IsKeyPressed(KEY_D)) world.game.debug = !world.game.debug;
     if (IsKeyPressed(KEY_N)) {
         world.game.level = (world.game.level + 1) % 5;
@@ -62,8 +62,6 @@ void update_world(void) {
     }
 
     if (world.game.paused) return;
-
-    update_ghost_state();
 
     if (IsKeyPressed(KEY_LEFT)) world.pacman.next_dir = DIR_WEST;
     if (IsKeyPressed(KEY_RIGHT)) world.pacman.next_dir = DIR_EAST;
@@ -80,6 +78,7 @@ void update_world(void) {
         }
     }
 
+    update_ghost_state(); // change between SCATTER & CHASE
     update_pacman();
     update_ghosts();
 }
