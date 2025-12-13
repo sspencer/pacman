@@ -5,26 +5,16 @@
 #include "ghost.h"
 
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 
-/*
-Blinky:
- 	sprite:       Vec2i{X: 520, Y: 64},
-    startingTile: Vec2i{X: 13, Y: 11},
-    startDir: West
-Inky
-    sprite:       Vec2i{X: 520, Y: 96},
-    startingTile: Vec2i{X: 12, Y: 14},
-    startingDir:  Up,
-Pinky:
-    sprite:       Vec2i{X: 520, Y: 80},
-    startingTile: Vec2i{X: 14, Y: 14},
-    startingDir:  Down,
-Sue:
-    sprite:       Vec2i{X: 520, Y: 112},
-    startingTile: Vec2i{X: 16, Y: 14},
-    startingDir:  Up,
-*/
+typedef enum {
+    EMPTY_MASK = 0,
+    NORTH_MASK = 1,
+    SOUTH_MASK = 2,
+    EAST_MASK = 4,
+    WEST_MASK = 8,
+} dir_mask_t;
 
 static int maze_top(int level) {
     // TODO change from level to board
@@ -52,6 +42,7 @@ ghost_data_t blinky_data() {
         .sprite = {0, 64},
         .start = {13, 11},
         .start_dir = DIR_WEST,
+        .start_state = GHOST_SCATTER,
         .chase = blinky_chase,
         .leave = blinky_leave,
         .scatter = blinky_scatter
@@ -76,6 +67,7 @@ ghost_data_t inky_data() {
         .sprite = {0, 96},
         .start = {12, 14},
         .start_dir = DIR_NORTH,
+        .start_state = GHOST_SCATTER, // TODO update to GHOST_IN_HOUSE
         .chase = inky_chase,
         .leave = inky_leave,
         .scatter = inky_scatter
@@ -103,6 +95,7 @@ ghost_data_t pinky_data() {
         .sprite = {0, 80},
         .start = {14, 14},
         .start_dir = DIR_SOUTH,
+        .start_state = GHOST_SCATTER, // TODO update to GHOST_IN_HOUSE
         .chase = pinky_chase,
         .leave = pinky_leave,
         .scatter = pinky_scatter
@@ -128,6 +121,7 @@ ghost_data_t sue_data() {
         .sprite = {0, 112},
         .start = {16, 14},
         .start_dir = DIR_NORTH,
+        .start_state = GHOST_SCATTER, // TODO update to GHOST_IN_HOUSE
         .chase = sue_chase,
         .leave = sue_leave,
         .scatter = sue_scatter
@@ -142,6 +136,7 @@ void init_ghost(entity_t *entity, ghost_data_t data) {
     entity->ty = (int)data.start.y;
     entity->x = (float)entity->tx * TILE;
     entity->y = (float)entity->ty * TILE;
+    entity->pixels_moved = 0;
 
     entity->sprite_x[DIR_EAST] = 456;
     entity->sprite_y[DIR_EAST] = (int)data.sprite.y;
@@ -158,6 +153,8 @@ void init_ghost(entity_t *entity, ghost_data_t data) {
     entity->frame_count = 0;
     entity->frame_index = 0;
 
+    entity->state = data.start_state;
+    entity->pixels_moved_in_dir = 0;
     entity->chase = data.chase;
     entity->leave = data.leave;
     entity->scatter = data.scatter;
@@ -178,9 +175,107 @@ static void update_ghost_frame(entity_t *g) {
     if (g->frame_count > cycle_length) g->frame_count = 0;
 }
 
+//    int level = world.game.level;
+static float ghost_speed(int level) {
+    // 96% of pacman's speed
+    static const float speed[] = {
+        84.48f,
+        92.928f,
+        92.928f,
+        92.928f,
+        101.376f   // used for level 5+
+    };
+    const size_t idx = (level < 1) ? 0 : (level > 4) ? 4 : (size_t)(level - 1);
+    return speed[idx] / 60.0f; // convert to pixels per frame
+}
+
+static dir_t opposite_dir(dir_t dir) {
+    switch (dir) {
+        case DIR_NORTH: return DIR_SOUTH;
+        case DIR_SOUTH: return DIR_NORTH;
+        case DIR_EAST: return DIR_WEST;
+        case DIR_WEST: return DIR_EAST;
+        default: return DIR_WEST;
+    }
+}
+
+static float dist_between(Vector2 a, Vector2 b) {
+    return sqrtf((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+}
+
+static dir_t choose_ghost_dir(entity_t *g, Vector2 target) {
+    int valid_dirs = 0;
+
+    for (int i = 0; i < DIR_COUNT; i++) {
+        if (i == opposite_dir(g->dir)) continue;
+        const Vector2 v = velocity[i];
+        const Vector2 next_tile = (Vector2){g->tx + v.x, g->ty + v.y};
+        if (next_tile.x < 0 || next_tile.x >= GAME_WIDTH || next_tile.y < 0 || next_tile.y >= GAME_HEIGHT) continue;
+        if (world.game.maze[(int)next_tile.y][(int)next_tile.x] == TILE_WALL) continue;
+        valid_dirs |= 1 << i;
+    }
+
+    if (valid_dirs == 0) return g->dir;
+
+    if (g->pixels_moved_in_dir < TILE) return g->dir;
+
+    dir_t best_dir = 0;
+    float min_distance = MAXFLOAT;
+
+    for (int i = 0; i < DIR_COUNT; i++) {
+        if (valid_dirs & 1 << i) {
+            const dir_t dir = (dir_t)i;
+            const Vector2 v = velocity[i];
+            const Vector2 next_tile = (Vector2){g->tx + v.x, g->ty + v.y};
+            float dist = dist_between(target, next_tile);
+            if (dist < min_distance) {
+                min_distance = dist;
+                best_dir = dir;
+            }
+        }
+    }
+
+    return best_dir;
+}
+
+static void move_ghost(entity_t *g, Vector2 vel, float speed) {
+    if (vel.x != 0 || vel.y != 0) {
+        g->pixels_moved += speed;
+
+        const float clamp = fminf(g->pixels_moved, TILE);
+
+        g->x = ((float)g->tx * TILE + (vel.x * clamp));
+        g->y = ((float)g->ty * TILE + (vel.y * clamp));
+    }
+}
+static void update_ghost(entity_t *g) {
+    update_ghost_frame(g);
+    if (g->pixels_moved >= TILE) {
+        g->tx += (int)velocity[g->dir].x;
+        g->ty += (int)velocity[g->dir].y;
+        g->pixels_moved = 0;
+    }
+
+    float speed = ghost_speed(world.game.level);
+
+    // if (g.state == GHOST_SCATTER)
+    const Vector2 target = g->scatter();
+
+    dir_t current_dir = g->dir;
+    g->dir = choose_ghost_dir(g, target);
+
+    Vector2 vel = velocity[g->dir];
+    if (current_dir == g->dir) {
+         g->pixels_moved_in_dir += speed;
+    } else {
+         g->pixels_moved_in_dir = speed;
+    }
+
+    move_ghost(g, vel, speed);
+}
+
 void update_ghosts() {
     for (int i = 0; i < GHOST_COUNT; i+=1) {
-        entity_t *g = &world.ghosts[i];
-        update_ghost_frame(g);
+        update_ghost(&world.ghosts[i]);
     }
 }

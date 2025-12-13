@@ -116,6 +116,7 @@ typedef struct {
     Vector2 sprite;
     Vector2 start;
     dir_t start_dir;
+    ghost_state_t start_state;
     Vector2 (*chase)(void);
     bool (*leave)(void);
     Vector2 (*scatter)(void);
@@ -135,6 +136,11 @@ typedef struct {
     uint8_t frame_count;
     uint8_t frame_index;
     int frames_to_pause; // when eating dots, pacman drops a frame or two
+
+    // ghosts
+    ghost_state_t state;
+    float pixels_moved_in_dir;
+    //int target_x, target_y; // ghost's target square
     Vector2 (*chase)(void); // ghosts only
     bool (*leave)(void); // ghosts only
     Vector2 (*scatter)(void); // ghosts only

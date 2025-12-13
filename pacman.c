@@ -56,7 +56,8 @@ static void update_pacman_frame(entity_t *p) {
     }
 }
 
-static float calculate_pacman_speed(int level) {
+static float pacman_speed() {
+    const int level = world.game.level;
     float speed;
     // TODO too simple, needs updating
     if (level <= 1) {
@@ -154,6 +155,6 @@ void update_pacman() {
     //     }
     // }
 
-    float speed = calculate_pacman_speed(game->level);
+    float speed = pacman_speed();
     move_pacman(vel, speed);
 }
