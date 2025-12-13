@@ -236,16 +236,6 @@ static dir_t choose_ghost_dir(entity_t *g, Vector2 target) {
     return best_dir;
 }
 
-static void move_ghost(entity_t *g, Vector2 vel, float speed) {
-    if (vel.x != 0 || vel.y != 0) {
-        g->pixels_moved += speed;
-
-        const float clamp = fminf(g->pixels_moved, TILE);
-
-        g->pos.x = (g->tile.x * TILE + (vel.x * clamp));
-        g->pos.y = (g->tile.y * TILE + (vel.y * clamp));
-    }
-}
 static void update_ghost(entity_t *g) {
     update_ghost_frame(g);
     if (g->pixels_moved >= TILE) {
