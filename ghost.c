@@ -213,9 +213,10 @@ static void update_ghost_frame(entity_t *g) {
 }
 
 //    int level = world.game.level;
-static float ghost_speed(int level) {
+static float ghost_speed(entity_t *g) {
+    const int level = world.game.level;
     // 96% of pacman's speed
-    static const float speed[] = {
+    static const float speed_table[] = {
         84.48f,
         92.928f,
         92.928f,
@@ -223,7 +224,10 @@ static float ghost_speed(int level) {
         101.376f   // used for level 5+
     };
     const size_t idx = (level < 1) ? 0 : (level > 4) ? 4 : (size_t)(level - 1);
-    return speed[idx] / 60.0f; // convert to pixels per frame
+
+    float speed = speed_table[idx];
+    if (is_in_tunnel(g->tile)) speed *= 0.5f;
+    return speed / 60.0f; // convert to pixels per frame
 }
 
 static dir_t opposite_dir(dir_t dir) {
@@ -280,8 +284,6 @@ static void update_ghost(entity_t *g) {
         g->pixels_moved = 0;
     }
 
-    float speed = ghost_speed(world.game.level);
-
     Vector2 target;
     if (g->state == GHOST_CHASE) {
         target = g->chase();
@@ -289,8 +291,19 @@ static void update_ghost(entity_t *g) {
         target = g->scatter();
     }
 
-    dir_t current_dir = g->dir;
-    g->dir = choose_ghost_dir(g, target);
+    const dir_t current_dir = g->dir;
+
+    if (is_in_tunnel(g->tile)) {
+        if (g->tile.x < 0 && g->dir == DIR_WEST) {
+            g->tile.x = GAME_WIDTH - 1;
+        } else if (g->tile.x >= GAME_WIDTH-1 && g->dir == DIR_EAST) {
+            g->tile.x = 0;
+        }
+    } else {
+        g->dir = choose_ghost_dir(g, target);
+    }
+
+    float speed = ghost_speed(g);
 
     if (current_dir == g->dir) {
          g->pixels_moved_in_dir += speed;
