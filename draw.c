@@ -6,6 +6,7 @@
 #include "game.h"
 #include "draw.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -22,7 +23,7 @@ void draw_maze(void) {
     const Rectangle src = (Rectangle){mx, my, mw, mh};
     const Rectangle dst = (Rectangle){0, 0, mw, mh};
 
-    DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+    DrawTexturePro(world.texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 
     // --- draw dots and power-ups ---
 
@@ -66,9 +67,9 @@ void draw_maze(void) {
             const Rectangle rec = (Rectangle){(float)x*TILE, (float)y*TILE, TILE, TILE};
 
             if (tile == TILE_DOT) {
-                DrawTexturePro(world.game_texture, dotSrc, rec, (Vector2){0, 0}, 0, WHITE);
+                DrawTexturePro(world.texture, dotSrc, rec, (Vector2){0, 0}, 0, WHITE);
             } else if (tile == TILE_POWER) {
-                DrawTexturePro(world.game_texture, powerSrc, rec, (Vector2){0, 0}, 0, WHITE);
+                DrawTexturePro(world.texture, powerSrc, rec, (Vector2){0, 0}, 0, WHITE);
             } else if (tile == TILE_TUNNEL) {
                 DrawRectangleV((Vector2){x*TILE, y*TILE}, (Vector2){TILE, TILE}, SKYBLUE);
             }
@@ -82,7 +83,7 @@ void draw_pacman(void) {
 
     const Rectangle src = (Rectangle){sprite.x + (float)p->frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
     const Rectangle dst = (Rectangle){p->pos.x, p->pos.y, SPRITE, SPRITE};
-    DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+    DrawTexturePro(world.texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 
     // Debug overlay to visualize alignment between intended tile center and actual position
     if (world.game.debug) {
@@ -105,7 +106,7 @@ void draw_ghosts(void) {
         // else normal
         const Rectangle src = (Rectangle){g->sprite_x[g->dir] + (float)g->frame_index * SPRITE, g->sprite_y[g->dir], SPRITE, SPRITE};
         const Rectangle dst = (Rectangle){g->pos.x, g->pos.y, SPRITE, SPRITE};
-        DrawTexturePro(world.game_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+        DrawTexturePro(world.texture, src, dst, (Vector2){0, 0}, 0, WHITE);
         /*
         if (world.game.debug) {
             Color c;
@@ -135,5 +136,55 @@ void draw_checkerboard(void) {
             i += 1;
         }
         i += 1;
+    }
+}
+
+void draw_text(const char *text, int x, int y, Color color) {
+    float fx = 0, fy = 0;
+    bool valid = false;
+
+    for (int i = 0; text[i] != '\0'; i++) {
+        unsigned char c = text[i];
+
+        if (c >= '0' && c <= '9') {
+            // 0 - 9
+            fx = (float)(c - '0');
+            fy = 2;
+            valid = true;
+        } else if (c >= 'A' && c <= 'O') {
+            // A - O
+            fx = (float)(c - 'A');
+            fy = 0;
+            valid = true;
+        } else if (c >= 'P' && c <= 'Z') {
+            // P - Z
+            fx = (float)(c - 'P');
+            fy = 1;
+            valid = true;
+        } else if (c == '!') {
+            fx = 11;
+            fy = 1;
+            valid = true;
+        } else if (c == '/') {
+            fx = 10;
+            fy = 2;
+            valid = true;
+        } else if (c == '-') {
+            fx = 11;
+            fy = 2;
+            valid = true;
+        } else if (c == '"') {
+            fx = 12;
+            fy = 2;
+            valid = true;
+        } else {
+            // Invalid or space: skip drawing but still advance position
+            continue;
+        }
+
+
+        Rectangle src = { fx * TILE, fy * TILE, TILE, TILE };
+        Rectangle dst = { (float)(x + i) * TILE, (float)y * TILE, TILE, TILE };
+        DrawTexturePro(world.font, src, dst, (Vector2){0.0f, 0.0f}, 0.0f, color);
     }
 }

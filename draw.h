@@ -13,4 +13,6 @@ void draw_maze(void);
 void draw_ghosts(void);
 void draw_pacman(void);
 void draw_checkerboard(void);
+void draw_text(const char *text, int x, int y, Color color);
+
 #endif //PACMAN_DRAW_H

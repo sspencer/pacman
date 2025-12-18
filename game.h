@@ -162,8 +162,9 @@ typedef struct {
     game_t game;
     entity_t pacman;
     entity_t ghosts[GHOST_COUNT];
-    Texture2D game_texture;
-    Image game_image;
+    Texture2D font;
+    Texture2D texture;
+    Image image;
 } world_t;
 
 extern world_t world;

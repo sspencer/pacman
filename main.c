@@ -55,8 +55,9 @@ int main(void) {
     SetTraceLogLevel(LOG_WARNING);
     SetTargetFPS(60);
 
-    world.game_texture = LoadTexture("assets/game.png");
-    world.game_image = LoadImageFromTexture(world.game_texture);
+    world.font = LoadTexture("assets/font.png");
+    world.texture = LoadTexture("assets/game.png");
+    world.image = LoadImageFromTexture(world.texture);
     world.game.level = 0;
     world.game.paused = false;
     world.game.score = 0;
@@ -90,8 +91,9 @@ int main(void) {
         EndDrawing();
     }
 
-    UnloadImage(world.game_image);
-    UnloadTexture(world.game_texture);
+    UnloadImage(world.image);
+    UnloadTexture(world.texture);
+    UnloadTexture(world.font);
     CloseWindow();
 
     return 0;

@@ -84,6 +84,14 @@ void update_world(void) {
 }
 
 void draw_world(float zoom, Shader shader) {
+    static char scoreBuffer[32];
+    const Camera2D text_camera = {
+        .offset = {0, 2 * zoom}, // 2 pixel offset from top border
+        .target = {0, 0},
+        .rotation = 0.0f,
+        .zoom = zoom
+    };
+
     const Camera2D maze_camera = {
         .offset = {0, TOP_PADDING * TILE * zoom},
         .target = {0, 0},
@@ -99,6 +107,15 @@ void draw_world(float zoom, Shader shader) {
         .zoom = zoom
     };
 
+    BeginMode2D(text_camera);
+    snprintf(scoreBuffer, sizeof(scoreBuffer), "%d", world.game.score);
+    draw_text("1UP", 3, 0, WHITE);
+    draw_text(scoreBuffer, 3, 1, WHITE);
+    draw_text("2UP", 22, 0, WHITE);
+    draw_text("0", 22, 1, WHITE);
+    draw_text("HIGH SCORE", 9, 0, WHITE);
+    EndMode2D();
+
     BeginMode2D(maze_camera);
     draw_maze();
     //if (world.game.debug) draw_checkerboard();
@@ -111,5 +128,3 @@ void draw_world(float zoom, Shader shader) {
     EndMode2D();
     EndShaderMode();
 }
-
-
