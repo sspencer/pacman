@@ -1,10 +1,12 @@
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>  // For getpid()
 
 #include "raylib.h"
 #include "game.h"
 #include "maze.h"
-#include "draw.h"
 #include "pacman.h"
 #include "ghost.h"
 #include "world.h"
@@ -46,9 +48,26 @@ static Vector2 monitor_size() {
     return (Vector2){(float)sw, (float)(sh-350)};
 }
 
+static unsigned int get_good_seed() {
+    unsigned int seed;
+    FILE *urandom = fopen("/dev/urandom", "rb");
+    if (urandom != NULL) {
+        if (fread(&seed, sizeof(seed), 1, urandom) == 1) {
+            fclose(urandom);
+            return seed;
+        }
+        fclose(urandom);
+    }
+    // Fallback if /dev/urandom is unavailable or fails
+    return (unsigned int)time(NULL) ^ (unsigned int)getpid();
+}
+
 int main(void) {
+    srand(get_good_seed());
+
     const Vector2 mon = monitor_size();
     screen_zoom = floorf(mon.y / (TILE * SCREEN_HEIGHT));
+    screen_zoom = 4.0f;
 
     InitWindow(SCREEN_WIDTH * TILE * screen_zoom, SCREEN_HEIGHT * TILE * screen_zoom, "Ms. Pacman");
     SetWindowPosition((int)mon.x - (int)(SCREEN_WIDTH * TILE * screen_zoom), 0);

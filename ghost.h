@@ -13,4 +13,5 @@ ghost_data_t sue_data();
 
 void init_ghost(entity_t *entity, ghost_data_t data);
 void update_ghosts(void);
+bool is_in_house(entity_t *g);
 #endif //PACMAN_GHOST_H

@@ -8,7 +8,6 @@
 
 #include "game.h"
 #include "ghost.h"
-#include "pacman.h"
 #include "maze.h"
 #include "draw.h"
 
@@ -30,26 +29,50 @@ static void update_ghost_state(void) {
 
     // Phase thresholds are cumulative seconds from level start.
     // After the last threshold, ghosts remain in CHASE indefinitely.
-    static const struct { int end_time; ghost_state_t state; } phases[] = {
-        {  7, GHOST_SCATTER },
-        { 27, GHOST_CHASE   },
-        { 34, GHOST_SCATTER },
-        { 54, GHOST_CHASE   },
-        { 61, GHOST_SCATTER },
-        { 81, GHOST_CHASE   },
-        { 86, GHOST_SCATTER },
+    static const struct { int end_time; state_t state; } phases[] = {
+        {  7, STATE_SCATTER },
+        { 27, STATE_CHASE   },
+        { 34, STATE_SCATTER },
+        { 54, STATE_CHASE   },
+        { 61, STATE_SCATTER },
+        { 81, STATE_CHASE   },
+        { 86, STATE_SCATTER },
     };
 
-    ghost_state_t desired = GHOST_CHASE; // default after final phase
+    state_t desired = STATE_CHASE; // default after final phase
     for (size_t i = 0; i < sizeof(phases)/sizeof(phases[0]); ++i) {
         if (elapsed < phases[i].end_time) { desired = phases[i].state; break; }
     }
 
     for (int i = 0; i < GHOST_COUNT; i++) {
         entity_t *e = &world.ghosts[i];
-        if (e->state == GHOST_SCATTER || e->state == GHOST_CHASE) {
+        if (e->state == STATE_SCATTER || e->state == STATE_CHASE) {
             e->state = desired;
+            e->sprite_type = SPRITE_ENTITY;
         }
+    }
+}
+
+void set_ghost_state(state_t state) {
+    if (state == STATE_FRIGHTENED) {
+        world.game.fright_time = GetTime() + FRIGHT_DURATION;
+    }
+
+    for (int i = 0; i < GHOST_COUNT; i++) {
+        entity_t *e = &world.ghosts[i];
+        if (e->state == STATE_IN_HOUSE || e->state == STATE_LEAVING_HOUSE) {
+            continue;
+        }
+
+        if (state == STATE_FRIGHTENED) {
+            e->sprite_type = SPRITE_BLUE;
+        } else if (state == STATE_EATEN) {
+            e->sprite_type = SPRITE_EYES;
+        } else {
+            e->sprite_type = SPRITE_ENTITY;
+        }
+
+        e->state = state;
     }
 }
 
@@ -69,12 +92,12 @@ void update_world(void) {
     if (IsKeyPressed(KEY_DOWN)) world.pacman.next_dir = DIR_SOUTH;
     if (IsKeyPressed(KEY_C)) {
         for (int i = 0; i < GHOST_COUNT; i++) {
-            world.ghosts[i].state = GHOST_CHASE;
+            world.ghosts[i].state = STATE_CHASE;
         }
     }
     if (IsKeyPressed(KEY_S)) {
         for (int i = 0; i < GHOST_COUNT; i++) {
-            world.ghosts[i].state = GHOST_SCATTER;
+            world.ghosts[i].state = STATE_SCATTER;
         }
     }
 
@@ -85,7 +108,7 @@ void update_world(void) {
 
 void draw_world(float zoom, Shader shader) {
     static char scoreBuffer[32];
-    const Camera2D text_camera = {
+    Camera2D text_camera = {
         .offset = {0, 2 * zoom}, // 2 pixel offset from top border
         .target = {0, 0},
         .rotation = 0.0f,
@@ -100,6 +123,7 @@ void draw_world(float zoom, Shader shader) {
     };
 
     const float nudge = TILE/2.0f;
+
     const Camera2D sprite_camera = {
         .offset = {0, TOP_PADDING * TILE * zoom},
         .target = {nudge, nudge},
@@ -107,13 +131,25 @@ void draw_world(float zoom, Shader shader) {
         .zoom = zoom
     };
 
+    // const Camera2D in_house_camera = {
+    //     .offset = {13, TOP_PADDING * TILE * zoom},
+    //     .target = {nudge + 3*zoom-1, nudge},
+    //     .rotation = 0.0f,
+    //     .zoom = zoom
+    // };
+
+    BeginMode2D(text_camera);
+    draw_text("1UP", 3, 0, WHITE);
+    draw_text("HIGH SCORE", 9, 0, WHITE);
+    draw_text("2UP", 22, 0, WHITE);
+    EndMode2D();
+
+    text_camera.offset.y = 3 * zoom;
     BeginMode2D(text_camera);
     snprintf(scoreBuffer, sizeof(scoreBuffer), "%d", world.game.score);
-    draw_text("1UP", 3, 0, WHITE);
     draw_text(scoreBuffer, 3, 1, WHITE);
-    draw_text("2UP", 22, 0, WHITE);
-    draw_text("0", 22, 1, WHITE);
-    draw_text("HIGH SCORE", 9, 0, WHITE);
+    draw_text("0", 13, 1, WHITE);
+    draw_text("0", 24, 1, WHITE);
     EndMode2D();
 
     BeginMode2D(maze_camera);

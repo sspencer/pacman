@@ -3,12 +3,11 @@
 //
 
 #include <raylib.h>
-#include "game.h"
-#include "draw.h"
-
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "game.h"
+#include "draw.h"
+#include "ghost.h"
 
 void draw_maze(void) {
     // TODO need conversion between level and board
@@ -79,7 +78,7 @@ void draw_maze(void) {
 
 void draw_pacman(void) {
     entity_t *p = &world.pacman;
-    Vector2 sprite = (Vector2){p->sprite_x[p->dir], p->sprite_y[p->dir]};
+    Vector2 sprite = (Vector2){p->sprite[p->dir].x, p->sprite[p->dir].y};
 
     const Rectangle src = (Rectangle){sprite.x + (float)p->frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
     const Rectangle dst = (Rectangle){p->pos.x, p->pos.y, SPRITE, SPRITE};
@@ -98,14 +97,47 @@ void draw_pacman(void) {
     }
 }
 
-void draw_ghosts(void) {
+void draw_ghosts() {
+    const static Vector2 eyes[DIR_COUNT] = {
+        {616, 80},
+        {632, 80},
+        {584, 80},
+        {600, 80}
+    }, fright_blue[DIR_COUNT] = {
+        {584, 64},
+        {584, 64},
+        {584, 64},
+        {584, 64}
+    }, fright_white[DIR_COUNT] = {
+        {616, 64},
+        {616, 64},
+        {616, 64},
+        {616, 64}
+    };
+
     for (int i = 0; i < GHOST_COUNT; i+=1) {
         entity_t *g = &world.ghosts[i];
-        // if frightened
-        // else if eaten
-        // else normal
-        const Rectangle src = (Rectangle){g->sprite_x[g->dir] + (float)g->frame_index * SPRITE, g->sprite_y[g->dir], SPRITE, SPRITE};
-        const Rectangle dst = (Rectangle){g->pos.x, g->pos.y, SPRITE, SPRITE};
+
+        Vector2 sprite;
+        float frame_index = g->frame_index;
+
+        if (g->sprite_type == SPRITE_EYES) {
+            sprite = eyes[g->dir];
+            frame_index = 0;
+        } else if (g->sprite_type == SPRITE_BLUE) {
+            sprite = fright_blue[g->dir];
+        } else if (g->sprite_type == SPRITE_WHITE) {
+            sprite = fright_white[g->dir];
+        }  else {
+            sprite = g->sprite[g->dir];
+        }
+
+        const Rectangle src = (Rectangle){sprite.x + frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
+         Rectangle dst = (Rectangle){g->pos.x, g->pos.y, SPRITE, SPRITE};
+        if (is_in_house(g)) {
+            dst.x -= (TILE/2.0f);
+        }
+
         DrawTexturePro(world.texture, src, dst, (Vector2){0, 0}, 0, WHITE);
         /*
         if (world.game.debug) {

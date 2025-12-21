@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "game.h"
+#include "world.h"
 
 #define POWER_EAT_PAUSE 3
 #define DOT_EAT_PAUSE 1
@@ -20,14 +21,10 @@ void init_pacman(entity_t *entity) {
     entity->tile.x = tile_x;
     entity->tile.y = tile_y;
 
-    entity->sprite_x[DIR_EAST] = 456;
-    entity->sprite_y[DIR_EAST] = 0;
-    entity->sprite_x[DIR_WEST] = 456;
-    entity->sprite_y[DIR_WEST] = 16;
-    entity->sprite_x[DIR_NORTH] = 456;
-    entity->sprite_y[DIR_NORTH] = 32;
-    entity->sprite_x[DIR_SOUTH] = 456;
-    entity->sprite_y[DIR_SOUTH] = 48;
+    entity->sprite[DIR_EAST] = (Vector2){456, 0};
+    entity->sprite[DIR_WEST] = (Vector2){456, 16};
+    entity->sprite[DIR_NORTH] = (Vector2){456, 32};
+    entity->sprite[DIR_SOUTH] = (Vector2){456, 48};
 
     entity->dir = DIR_WEST;
     entity->next_dir = DIR_WEST;
@@ -205,6 +202,7 @@ void update_pacman() {
                 game->maze[(int)p->tile.y][(int)p->tile.x] = TILE_EMPTY;
                 p->eating_dot = true;
                 game->score += 50;
+                set_ghost_state(STATE_FRIGHTENED);
                 if (p->frames_to_pause == 0) { // don't overwrite power eat
                     p->frames_to_pause = POWER_EAT_PAUSE;
                 }

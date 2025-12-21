@@ -31,10 +31,10 @@ Vector2 blinky_scatter(void) {
 
 ghost_data_t blinky_data() {
     static ghost_data_t data = {
-        .sprite = {0, 64},
+        .sprite_y = 64,
         .start = {13, 11},
         .start_dir = DIR_WEST,
-        .start_state = GHOST_SCATTER,
+        .start_state = STATE_SCATTER,
         .chase = blinky_chase,
         .leave = blinky_leave,
         .scatter = blinky_scatter
@@ -77,16 +77,14 @@ Vector2 inky_scatter(void) {
 
 ghost_data_t inky_data() {
     ghost_data_t data = {
-        .sprite = {0, 96},
+        .sprite_y = 96,
         .start = {12, 14},
         .start_dir = DIR_NORTH,
-        .start_state = GHOST_SCATTER, // TODO update to GHOST_IN_HOUSE
+        .start_state = STATE_IN_HOUSE,
         .chase = inky_chase,
         .leave = inky_leave,
         .scatter = inky_scatter
     };
-
-    data.start = (Vector2){18, 11}; // TODO remove
 
     return data;
 }
@@ -119,15 +117,14 @@ Vector2 pinky_scatter(void) {
 
 ghost_data_t pinky_data() {
     ghost_data_t data = {
-        .sprite = {0, 80},
+        .sprite_y = 80,
         .start = {14, 14},
         .start_dir = DIR_SOUTH,
-        .start_state = GHOST_SCATTER, // TODO update to GHOST_IN_HOUSE
+        .start_state = STATE_IN_HOUSE,
         .chase = pinky_chase,
         .leave = pinky_leave,
         .scatter = pinky_scatter
     };
-    data.start = (Vector2){9, 11}; // TODO remove
 
     return data;
 }
@@ -155,15 +152,14 @@ bool sue_leave(void) {
 
 ghost_data_t sue_data() {
     ghost_data_t data = {
-        .sprite = {0, 112},
+        .sprite_y = 112,
         .start = {16, 14},
         .start_dir = DIR_NORTH,
-        .start_state = GHOST_SCATTER, // TODO update to GHOST_IN_HOUSE
+        .start_state = STATE_IN_HOUSE,
         .chase = sue_chase,
         .leave = sue_leave,
         .scatter = sue_scatter
     };
-    data.start = (Vector2){9, 4}; // TODO remove
 
     return data;
 }
@@ -175,21 +171,23 @@ void init_ghost(entity_t *entity, ghost_data_t data) {
     entity->pos.y = entity->tile.y * TILE;
     entity->pixels_moved = 0;
 
-    entity->sprite_x[DIR_EAST] = 456;
-    entity->sprite_y[DIR_EAST] = (int)data.sprite.y;
-    entity->sprite_x[DIR_WEST] = 488;
-    entity->sprite_y[DIR_WEST] = (int)data.sprite.y;
-    entity->sprite_x[DIR_NORTH] = 520;
-    entity->sprite_y[DIR_NORTH] = (int)data.sprite.y;
-    entity->sprite_x[DIR_SOUTH] = 552;
-    entity->sprite_y[DIR_SOUTH] = (int)data.sprite.y;
+    float bounce = 0;
+    if (data.start_dir == DIR_SOUTH) {
+        bounce = M_PI / 2;
+    }
+    entity->bounce = bounce;
+
+    entity->sprite[DIR_EAST] = (Vector2){456, data.sprite_y};
+    entity->sprite[DIR_WEST] = (Vector2){488, data.sprite_y};
+    entity->sprite[DIR_NORTH] = (Vector2){520,data.sprite_y};
+    entity->sprite[DIR_SOUTH] = (Vector2){552, data.sprite_y};
 
     entity->dir = data.start_dir;
     entity->next_dir = data.start_dir;
 
+    entity->sprite_type = SPRITE_ENTITY;
     entity->frame_count = 0;
     entity->frame_index = 0;
-
     entity->state = data.start_state;
     entity->pixels_moved_in_dir = 0;
     entity->chase = data.chase;
@@ -277,15 +275,34 @@ static dir_t choose_ghost_dir(entity_t *g, Vector2 target) {
     return best_dir;
 }
 
+bool is_in_house(entity_t *g) {
+    return g->state == STATE_IN_HOUSE || g->state == STATE_LEAVING_HOUSE;
+}
+
 static void update_ghost(entity_t *g) {
     update_ghost_frame(g);
+    if (g->state == STATE_IN_HOUSE) {
+        const float prevSine = sinf(g->bounce - BOUNCE_SPEED);
+        g->bounce += BOUNCE_SPEED;
+        const float currentSine = sinf(g->bounce);
+        const float nextSine = sinf(g->bounce + BOUNCE_SPEED);
+
+        g->pos.y = g->tile.y * TILE + (currentSine * BOUNCE_AMPLITUDE);
+        if (prevSine < currentSine && currentSine > nextSine) {
+            g->dir = DIR_NORTH;
+        } else if (prevSine > currentSine && currentSine < nextSine) {
+            g->dir = DIR_SOUTH;
+        }
+        return;
+    }
+
     if (g->pixels_moved >= TILE) {
         set_next_tile(g, g->dir);
         g->pixels_moved = 0;
     }
 
     Vector2 target;
-    if (g->state == GHOST_CHASE) {
+    if (g->state == STATE_CHASE) {
         target = g->chase();
     } else {
         target = g->scatter();
@@ -316,8 +333,35 @@ static void update_ghost(entity_t *g) {
     move_entity(g, speed);
 }
 
+static void update_fright(entity_t *g) {
+    if (g->state != STATE_FRIGHTENED) {
+        return;
+    }
+
+    const double dt = world.game.fright_time - GetTime();
+    if (dt < 0) {
+        g->state = STATE_CHASE;
+        g->sprite_type = SPRITE_ENTITY;
+        return;
+    }
+
+    if (dt > 2.0) {
+        g->sprite_type = SPRITE_BLUE;
+        return;
+    }
+
+    const int n = (int)round(dt * 200) % 100;
+    if (n > 49) {
+        g->sprite_type = SPRITE_BLUE;
+    } else {
+        g->sprite_type = SPRITE_WHITE;
+    }
+}
+
 void update_ghosts() {
     for (int i = 0; i < GHOST_COUNT; i+=1) {
-        update_ghost(&world.ghosts[i]);
+        entity_t *g = &world.ghosts[i];
+        update_fright(g);
+        update_ghost(g);
     }
 }
