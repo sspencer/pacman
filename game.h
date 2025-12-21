@@ -88,7 +88,7 @@ typedef struct {
     float bounce;
     dir_t dir;
     dir_t next_dir;
-    bool eating_dot;
+
     Vector2 sprite[DIR_COUNT];
     uint8_t frame_count;
     uint8_t frame_index;

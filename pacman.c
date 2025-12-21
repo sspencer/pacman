@@ -132,7 +132,6 @@ void update_pacman() {
     if (p->pixels_moved >= TILE) {
         set_next_tile(p, p->dir);
         p->pixels_moved = 0;
-        p->eating_dot = false;
     }
 
     // Decide next move. Allow smooth reversal on the same axis without a visual gap
@@ -188,37 +187,26 @@ void update_pacman() {
         can_move = true;
     }
 
-
-    if (!p->eating_dot) {
-        if (p->tile.x >= 0 && p->tile.x < GAME_WIDTH && p->tile.y >= 0 && p->tile.y < GAME_HEIGHT) {
-            tile_t tile = game->maze[(int)p->tile.y][(int)p->tile.x];
-            if (tile == TILE_DOT) {
-                game->maze[(int)p->tile.y][(int)p->tile.x] = TILE_EMPTY;
-                p->eating_dot = true;
-                game->dots_eaten++;
-                game->score += 10;
-                p->frames_to_pause = DOT_EAT_PAUSE;
-            } else if (tile == TILE_POWER) {
-                game->maze[(int)p->tile.y][(int)p->tile.x] = TILE_EMPTY;
-                p->eating_dot = true;
-                game->score += 50;
-                set_ghost_state(STATE_FRIGHTENED);
-                if (p->frames_to_pause == 0) { // don't overwrite power eat
-                    p->frames_to_pause = POWER_EAT_PAUSE;
-                }
+    // TODO remove else clause if these conditions are always true
+    if (p->tile.x >= 0 && p->tile.x < GAME_WIDTH && p->tile.y >= 0 && p->tile.y < GAME_HEIGHT) {
+        const tile_t tile = game->maze[(int)p->tile.y][(int)p->tile.x];
+        if (tile == TILE_DOT) {
+            game->maze[(int)p->tile.y][(int)p->tile.x] = TILE_EMPTY;
+            game->dots_eaten++;
+            game->score += 10;
+            p->frames_to_pause = DOT_EAT_PAUSE;
+        } else if (tile == TILE_POWER) {
+            game->maze[(int)p->tile.y][(int)p->tile.x] = TILE_EMPTY;
+            game->score += 50;
+            set_ghost_state(STATE_FRIGHTENED);
+            if (p->frames_to_pause == 0) { // don't overwrite power eat
+                p->frames_to_pause = POWER_EAT_PAUSE;
             }
-        } else {
-            printf("Pacman went off the map! tx=%f, ty=%f\n", p->tile.x, p->tile.y);
-            exit(1);
         }
+    } else {
+        printf("Pacman went off the map! tx=%f, ty=%f\n", p->tile.x, p->tile.y);
+        exit(1);
     }
-    // if (vel.x == 0 && vel.y == 0) {
-    //     vel = velocity[p->next_dir];
-    //     if (can_player_move(vel)) {
-    //         p->dir = p->next_dir;
-    //         vel = velocity[p->dir];
-    //     }
-    // }
 
     if (can_move) {
         move_entity(p, pacman_speed());
