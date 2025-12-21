@@ -8,6 +8,7 @@
 
 #include "game.h"
 #include "ghost.h"
+#include "pacman.h"
 #include "maze.h"
 #include "draw.h"
 
@@ -107,7 +108,6 @@ void update_world(void) {
 }
 
 void draw_world(float zoom, Shader shader) {
-    static char scoreBuffer[32];
     Camera2D text_camera = {
         .offset = {0, 2 * zoom}, // 2 pixel offset from top border
         .target = {0, 0},
@@ -131,25 +131,13 @@ void draw_world(float zoom, Shader shader) {
         .zoom = zoom
     };
 
-    // const Camera2D in_house_camera = {
-    //     .offset = {13, TOP_PADDING * TILE * zoom},
-    //     .target = {nudge + 3*zoom-1, nudge},
-    //     .rotation = 0.0f,
-    //     .zoom = zoom
-    // };
-
     BeginMode2D(text_camera);
-    draw_text("1UP", 3, 0, WHITE);
-    draw_text("HIGH SCORE", 9, 0, WHITE);
-    draw_text("2UP", 22, 0, WHITE);
+    draw_score_labels();
     EndMode2D();
 
     text_camera.offset.y = 3 * zoom;
     BeginMode2D(text_camera);
-    snprintf(scoreBuffer, sizeof(scoreBuffer), "%d", world.game.score);
-    draw_text(scoreBuffer, 3, 1, WHITE);
-    draw_text("0", 13, 1, WHITE);
-    draw_text("0", 24, 1, WHITE);
+    draw_scores();
     EndMode2D();
 
     BeginMode2D(maze_camera);

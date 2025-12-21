@@ -220,3 +220,17 @@ void draw_text(const char *text, int x, int y, Color color) {
         DrawTexturePro(world.font, src, dst, (Vector2){0.0f, 0.0f}, 0.0f, color);
     }
 }
+
+void draw_score_labels(void) {
+    draw_text("1UP", 3, 0, WHITE);
+    draw_text("HIGH SCORE", 9, 0, WHITE);
+    draw_text("2UP", 22, 0, WHITE);
+}
+
+void draw_scores(void) {
+    static char scoreBuffer[32];
+    snprintf(scoreBuffer, sizeof(scoreBuffer), "%d", world.game.score);
+    draw_text(scoreBuffer, 3, 1, WHITE);
+    draw_text("0", 13, 1, WHITE);
+    draw_text("0", 24, 1, WHITE);
+}
