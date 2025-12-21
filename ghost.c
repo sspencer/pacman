@@ -282,17 +282,9 @@ bool is_in_house(entity_t *g) {
 static void update_ghost(entity_t *g) {
     update_ghost_frame(g);
     if (g->state == STATE_IN_HOUSE) {
-        const float prevSine = sinf(g->bounce - BOUNCE_SPEED);
         g->bounce += BOUNCE_SPEED;
-        const float currentSine = sinf(g->bounce);
-        const float nextSine = sinf(g->bounce + BOUNCE_SPEED);
-
-        g->pos.y = g->tile.y * TILE + (currentSine * BOUNCE_AMPLITUDE);
-        if (prevSine < currentSine && currentSine > nextSine) {
-            g->dir = DIR_NORTH;
-        } else if (prevSine > currentSine && currentSine < nextSine) {
-            g->dir = DIR_SOUTH;
-        }
+        g->pos.y = g->tile.y * TILE + sinf(g->bounce) * BOUNCE_AMPLITUDE;
+        g->dir = cosf(g->bounce) > 0 ? DIR_SOUTH : DIR_NORTH;
         return;
     }
 
