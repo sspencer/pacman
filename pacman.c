@@ -105,7 +105,8 @@ static bool can_pacman_move(entity_t *p, dir_t dir) {
 
     if (anchor.x < 0 || anchor.x >= GAME_WIDTH || anchor.y < 0 || anchor.y >= GAME_HEIGHT) return false;
 
-    return game->maze[(int)anchor.y][(int)anchor.x] != TILE_WALL;
+    tile_t t = game->maze[(int)anchor.y][(int)anchor.x];
+    return t != TILE_WALL && t != TILE_DOOR;
 }
 
 static inline bool dirs_opposite(dir_t a, dir_t b) {

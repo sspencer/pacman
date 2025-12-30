@@ -45,6 +45,8 @@ static void update_ghost_state(void) {
         if (elapsed < phases[i].end_time) { desired = phases[i].state; break; }
     }
 
+    world.game.ghost_state = desired;
+
     for (int i = 0; i < GHOST_COUNT; i++) {
         entity_t *e = &world.ghosts[i];
         if (e->state == STATE_SCATTER || e->state == STATE_CHASE) {
@@ -142,7 +144,7 @@ void draw_world(float zoom, Shader shader) {
 
     BeginMode2D(maze_camera);
     draw_maze();
-    //if (world.game.debug) draw_checkerboard();
+    if (world.game.debug) draw_checkerboard();
     EndMode2D();
 
     BeginShaderMode(shader); // shader makes BLACK transparent

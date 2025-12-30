@@ -68,7 +68,11 @@ Vector2 inky_chase(void) {
 }
 
 bool inky_leave(void) {
-    return true;
+    if (world.game.dots_eaten > 30) {
+        return world.game.level_time > 7;
+    }
+
+    return false;
 }
 
 Vector2 inky_scatter(void) {
@@ -108,7 +112,7 @@ Vector2 pinky_chase(void) {
 }
 
 bool pinky_leave(void) {
-    return true;
+    return world.game.level_time > 1;
 }
 
 Vector2 pinky_scatter(void) {
@@ -147,7 +151,11 @@ Vector2 sue_chase(void) {
 }
 
 bool sue_leave(void) {
-    return true;
+    if (world.game.dots_eaten > 60) {
+        return world.game.level_time > 15;
+    }
+
+    return false;
 }
 
 ghost_data_t sue_data() {
@@ -242,15 +250,27 @@ static float dist_between(Vector2 a, Vector2 b) {
     return sqrtf((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
 }
 
+static bool is_valid_move(Vector2 tile, bool leaving_house) {
+    const int x = (int)tile.x, y = (int)tile.y;
+
+    if (x < 0 || x >= GAME_WIDTH || y < 0 || y >= GAME_HEIGHT) return false;
+
+    tile_t t = world.game.maze[y][x];
+    if (t == TILE_WALL) return false;
+    if (t == TILE_DOOR) return leaving_house;
+
+    return true;
+}
+
 static dir_t choose_ghost_dir(entity_t *g, Vector2 target) {
     int valid_dirs = 0;
 
     for (int i = 0; i < DIR_COUNT; i++) {
         if (i == opposite_dir(g->dir)) continue;
         Vector2 next_tile = get_next_tile(g, i);
-        if (next_tile.x < 0 || next_tile.x >= GAME_WIDTH || next_tile.y < 0 || next_tile.y >= GAME_HEIGHT) continue;
-        if (world.game.maze[(int)next_tile.y][(int)next_tile.x] == TILE_WALL) continue;
-        valid_dirs |= 1 << i;
+        if (is_valid_move(next_tile, g->state == STATE_LEAVING_HOUSE)) {
+            valid_dirs |= 1 << i;
+        }
     }
 
     if (valid_dirs == 0) return g->dir;
@@ -264,7 +284,7 @@ static dir_t choose_ghost_dir(entity_t *g, Vector2 target) {
         if (valid_dirs & 1 << i) {
             const dir_t dir = (dir_t)i;
             Vector2 next_tile = get_next_tile(g, i);
-            float dist = dist_between(target, next_tile);
+            const float dist = dist_between(target, next_tile);
             if (dist < min_distance) {
                 min_distance = dist;
                 best_dir = dir;
@@ -281,11 +301,28 @@ bool is_in_house(entity_t *g) {
 
 static void update_ghost(entity_t *g) {
     update_ghost_frame(g);
+
     if (g->state == STATE_IN_HOUSE) {
         g->bounce += BOUNCE_SPEED;
         g->pos.y = g->tile.y * TILE + sinf(g->bounce) * BOUNCE_AMPLITUDE;
         g->dir = cosf(g->bounce) > 0 ? DIR_SOUTH : DIR_NORTH;
+
+        if (g->leave()) {
+            g->state = STATE_LEAVING_HOUSE;
+            g->dir = DIR_NORTH;
+            g->target = (Vector2){13, 11};
+        }
+
         return;
+    }
+
+    if (g->state == STATE_LEAVING_HOUSE) {
+        //printf("Ghost leaving house at %f, %f\n", g->tile.x, g->tile.y);
+        if ((g->tile.x == 13 || g->tile.x == 14) && g->tile.y == 11) {
+            g->state = world.game.ghost_state;
+            world.game.paused = true;
+            return;
+        }
     }
 
     if (g->pixels_moved >= TILE) {

@@ -20,11 +20,9 @@
 #define BOUNCE_SPEED 0.1f
 #define BOUNCE_AMPLITUDE 4.0f
 
-#define DOT_MASK 103481868288
-#define POWER_MASK 4359202964317896252
-
 typedef enum {
     TILE_WALL,
+    TILE_DOOR,
     TILE_DOT,
     TILE_POWER,
     TILE_EMPTY,
@@ -107,6 +105,7 @@ typedef struct {
     uint8_t maze[GAME_HEIGHT][GAME_WIDTH];
     int score;
     int dots_eaten;
+    state_t ghost_state;
     double level_time;
     double fright_time;
     bool paused;
