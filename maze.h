@@ -4,7 +4,6 @@
 
 #ifndef PACMAN_MAZE_H
 #define PACMAN_MAZE_H
-#include <raylib.h>
 #include "game.h"
 
 void debug_maze(const game_t *game);

@@ -129,5 +129,7 @@ void set_next_tile(entity_t *e, dir_t dir);
 Vector2 get_next_tile(const entity_t *e, dir_t dir);
 void move_entity(entity_t *e, float speed);
 bool is_in_tunnel(Vector2 pos);
+bool is_in_doorway(int x, int y);
+bool is_in_house(int x, int y);
 
 #endif //PACMAN_GAME_H

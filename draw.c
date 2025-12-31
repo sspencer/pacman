@@ -81,6 +81,7 @@ void draw_pacman(void) {
     Vector2 sprite = (Vector2){p->sprite[p->dir].x, p->sprite[p->dir].y};
 
     const Rectangle src = (Rectangle){sprite.x + (float)p->frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
+    //Rectangle dst = (Rectangle){p->pos.x - 4.0f, p->pos.y - 4.0f, SPRITE, SPRITE};
     const Rectangle dst = (Rectangle){p->pos.x, p->pos.y, SPRITE, SPRITE};
     DrawTexturePro(world.texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 
@@ -134,7 +135,7 @@ void draw_ghosts() {
 
         const Rectangle src = (Rectangle){sprite.x + frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
          Rectangle dst = (Rectangle){g->pos.x, g->pos.y, SPRITE, SPRITE};
-        if (is_in_house(g)) {
+        if (is_in_house((int)g->tile.x, (int)g->tile.y)) {
             dst.x -= (TILE/2.0f);
         }
 
@@ -161,7 +162,7 @@ void draw_checkerboard(void) {
     for (int y = 0; y < GAME_HEIGHT; y+=1) {
         for (int x = 0; x < GAME_WIDTH; x+=1) {
             Color c = (i % 2 == 0) ? c1 : c2;
-            if (y == 12 && (x == 13 || x == 14)) {
+            if (is_in_doorway(x, y)) {
                 c = c3;
             }
             DrawRectangleV((Vector2){x*TILE, y*TILE}, (Vector2){TILE, TILE}, c);
@@ -173,42 +174,31 @@ void draw_checkerboard(void) {
 
 void draw_text(const char *text, int x, int y, Color color) {
     float fx = 0, fy = 0;
-    bool valid = false;
 
     for (int i = 0; text[i] != '\0'; i++) {
         unsigned char c = text[i];
 
         if (c >= '0' && c <= '9') {
-            // 0 - 9
             fx = (float)(c - '0');
             fy = 2;
-            valid = true;
         } else if (c >= 'A' && c <= 'O') {
-            // A - O
             fx = (float)(c - 'A');
             fy = 0;
-            valid = true;
         } else if (c >= 'P' && c <= 'Z') {
-            // P - Z
             fx = (float)(c - 'P');
             fy = 1;
-            valid = true;
         } else if (c == '!') {
             fx = 11;
             fy = 1;
-            valid = true;
         } else if (c == '/') {
             fx = 10;
             fy = 2;
-            valid = true;
         } else if (c == '-') {
             fx = 11;
             fy = 2;
-            valid = true;
         } else if (c == '"') {
             fx = 12;
             fy = 2;
-            valid = true;
         } else {
             // Invalid or space: skip drawing but still advance position
             continue;

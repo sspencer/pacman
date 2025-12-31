@@ -295,10 +295,6 @@ static dir_t choose_ghost_dir(entity_t *g, Vector2 target) {
     return best_dir;
 }
 
-bool is_in_house(entity_t *g) {
-    return g->state == STATE_IN_HOUSE || g->state == STATE_LEAVING_HOUSE;
-}
-
 static void update_ghost(entity_t *g) {
     update_ghost_frame(g);
 
@@ -309,19 +305,15 @@ static void update_ghost(entity_t *g) {
 
         if (g->leave()) {
             g->state = STATE_LEAVING_HOUSE;
-            g->dir = DIR_NORTH;
-            g->target = (Vector2){13, 11};
+            g->target = (Vector2){14, 11};
         }
 
         return;
     }
 
     if (g->state == STATE_LEAVING_HOUSE) {
-        //printf("Ghost leaving house at %f, %f\n", g->tile.x, g->tile.y);
-        if ((g->tile.x == 13 || g->tile.x == 14) && g->tile.y == 11) {
+        if (is_in_doorway((int)g->tile.x, (int)g->tile.y)) {
             g->state = world.game.ghost_state;
-            world.game.paused = true;
-            return;
         }
     }
 
@@ -331,7 +323,9 @@ static void update_ghost(entity_t *g) {
     }
 
     Vector2 target;
-    if (g->state == STATE_CHASE) {
+    if (g->state == STATE_LEAVING_HOUSE) {
+        target = (Vector2){13, 11};
+    } else if (g->state == STATE_CHASE) {
         target = g->chase();
     } else {
         target = g->scatter();

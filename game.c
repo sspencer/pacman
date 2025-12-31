@@ -57,3 +57,12 @@ void move_entity(entity_t *e, float speed) {
         default:        e->pos.x = e->tile.x * TILE - clamp; break;
     }
 }
+
+bool is_in_doorway(int x, int y) {
+    return world.game.maze[y][x] == TILE_DOOR;
+}
+
+bool is_in_house(int x, int y) {
+    return ((x >= 11 && x <= 16) && (y >= 13 && y <= 15)) || is_in_doorway(x, y);
+}
+
