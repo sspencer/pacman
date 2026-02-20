@@ -24,6 +24,8 @@ void init_level(int level) {
     game.level_spec = get_level_spec(level);
     game.is_paused = false;
     game.dots_eaten = 0;
+    game.frame_count = 0;
+    game.level_frame_count = 0;
     game.frightened_frames = 0;
     game.frightened_flashes = 0;
     game.ghost_state = SCATTER;
@@ -45,6 +47,7 @@ const char *dir_to_string(const Dir dir) {
 bool is_centered(const int x, const int y) {
     return (x % TILE) == 0 && (y % TILE) == 0;
 }
+
 LevelSpecTable get_level_spec(const int level) {
     constexpr size_t table_count = LEVEL_SPEC_TABLE_SIZE;
     for (size_t i = 0; i < table_count; i++) {
@@ -202,9 +205,12 @@ static void process_events(void) {
                 game.frightened_frames = game.level_spec.frightened_frames;
                 game.frightened_flashes = game.level_spec.frightened_flashes;
                 for (int i = 0; i < NUM_GHOSTS; i++) {
-                    // game.ghosts[i].is_frightened = true;
-                    game.ghosts[i].state = FRIGHTENED;
-                    game.ghosts[i].reverse = true;
+                    // TODO if a ghost was in the house when POWERUP was consumed,
+                    // ghost should turn blue if frightened mode is still active
+                    if (game.ghosts[i].state == SCATTER || game.ghosts[i].state == CHASE) {
+                        game.ghosts[i].state = FRIGHTENED;
+                        game.ghosts[i].reverse = true;
+                    }
                 }
                 break;
             case GHOST_ATE_PLAYER:
@@ -220,8 +226,10 @@ static void process_events(void) {
                 game.ghost_phase_change = game.frame_count + phase.duration_frames;
                 game.ghost_state = phase.state;
                 for (int i = 0; i < NUM_GHOSTS; i++) {
-                    game.ghosts[i].state = game.ghost_state;
-                    game.ghosts[i].reverse = true; // TODO do ghosts reverse on state change
+                    if (game.ghosts[i].state == SCATTER || game.ghosts[i].state == CHASE) {
+                        game.ghosts[i].state = game.ghost_state;
+                        game.ghosts[i].reverse = true; // TODO do ghosts reverse on state change
+                    }
                 }
                 break;
             case FRIGHT_MODE_END:
@@ -252,6 +260,8 @@ void update_game(void) {
     }
 
     if (game.is_paused) return;
+
+    game.level_frame_count++;
 
     if (game.is_fright_mode) {
         game.frightened_frames--;

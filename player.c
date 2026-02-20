@@ -7,6 +7,8 @@
 #include "level.h"
 
 void init_pacman(Actor *pacman) {
+    pacman->id = -1;
+    pacman->name = "player";
     pacman->x = 108;
     pacman->y = 184;
     pacman->dir = LEFT;

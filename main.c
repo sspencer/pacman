@@ -28,7 +28,6 @@ int main(void) {
     init_sue(&game.ghosts[SUE]);
     init_maze(game.level);
     // need a init_level func
-    game.frame_count = 0;
 
     while (!WindowShouldClose()) {
         update_game();

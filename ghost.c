@@ -7,6 +7,7 @@
 #include <math.h>
 #include <raylib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "maze.h"
 #include "level.h"
@@ -74,7 +75,7 @@ Vector2 inky_chase(void) {
 
 bool inky_leave(void) {
     if (game.dots_eaten > 30) {
-        return game.frame_count > SECONDS_TO_FRAMES(7);
+        return game.level_frame_count > SECONDS_TO_FRAMES(7);
     }
 
     return false;
@@ -105,7 +106,7 @@ Vector2 pinky_chase(void) {
 }
 
 bool pinky_leave(void) {
-    return game.frame_count > SECONDS_TO_FRAMES(1);
+    return game.level_frame_count > SECONDS_TO_FRAMES(1);
 }
 
 Vector2 pinky_scatter(void) {
@@ -134,53 +135,61 @@ Vector2 sue_chase(void) {
 
 bool sue_leave(void) {
     if (game.dots_eaten > 60) {
-        return game.frame_count > SECONDS_TO_FRAMES(15);
+        return game.level_frame_count > SECONDS_TO_FRAMES(15);
     }
 
     return false;
 }
 
-void init_base_ghost(Actor *g, int x, int y, [[maybe_unused]] GhostState state, Dir dir) {
+void init_base_ghost(Actor *g, int id, int x, int y, [[maybe_unused]] GhostState state, Dir dir) {
+    static constexpr float PI_F = 3.14159265358979323846f;
+    g->id = id;
     g->x = x * TILE - HALF;
     g->y = y * TILE;
+    g->start_y = g->y;
     g->state = state;
     g->dir = dir;
     g->is_player = false;
     g->frame_count = 0;
     g->frame_index = 0;
     g->pixels_moved = 0;
-    g->bounce = 0;
+    // Phase controls initial bounce direction: UP starts upward, DOWN starts downward.
+    g->bounce = (dir == UP) ? PI_F : 0.0f;
     g->speed_idx = 0;
     // g->is_frightened = false;
     g->reverse = false;
 }
 
 void init_blinky(Actor *g) {
-    init_base_ghost(g, 14, 11, SCATTER, RIGHT);
+    init_base_ghost(g, BLINKY, 14, 11, SCATTER, RIGHT);
+    g->name = "blinky";
     g->chase = blinky_chase;
     g->leave = blinky_leave;
     g->scatter = blinky_scatter;
 }
 
 void init_inky(Actor *g) {
-    //init_base_ghost(g, 12, 14, STATE_IN_HOUSE, DIR_UP);
-    init_base_ghost(g, 12, 11, SCATTER, LEFT);
+    init_base_ghost(g, INKY, 12, 14, IN_HOUSE, UP);
+    g->name = "inky";
+    //init_base_ghost(g, 12, 11, SCATTER, LEFT);
     g->chase = inky_chase;
     g->leave = inky_leave;
     g->scatter = inky_scatter;
 }
 
 void init_pinky(Actor *g) {
-    //init_base_ghost(g, 14, 14, STATE_IN_HOUSE, DIR_DOWN);
-    init_base_ghost(g, 15, 11, SCATTER, LEFT);
+    init_base_ghost(g, PINKY, 14, 14, IN_HOUSE, DOWN);
+    g->name = "pinky";
+    //init_base_ghost(g, 15, 11, SCATTER, LEFT);
     g->chase = pinky_chase;
     g->leave = pinky_leave;
     g->scatter = pinky_scatter;
 }
 
 void init_sue(Actor *g) {
-    //init_base_ghost(g, 16, 14, STATE_IN_HOUSE, DIR_UP);
-    init_base_ghost(g, 16, 11, SCATTER, RIGHT);
+    init_base_ghost(g, SUE, 16, 14, IN_HOUSE, UP);
+    g->name = "sue";
+    //init_base_ghost(g, 16, 11, SCATTER, RIGHT);
     g->chase = sue_chase;
     g->leave = sue_leave;
     g->scatter = sue_scatter;
@@ -271,31 +280,62 @@ static void update_ghost_frame(Actor *g) {
     if (g->frame_count > cycle_length) g->frame_count = 0;
 }
 
+static void update_ghost(Actor *g) {
+    update_ghost_frame(g);
 
-void update_ghosts(void) {
-    for (int i = 0; i < NUM_GHOSTS; i++) {
-        Actor *g = &game.ghosts[i];
-        update_ghost_frame(g);
+    if (g->state == IN_HOUSE) {
+        g->bounce += BOUNCE_SPEED;
+        g->y = g->start_y + (int) lroundf(sinf(g->bounce) * BOUNCE_AMPLITUDE);
+        g->dir = cosf(g->bounce) > 0 ? DOWN : UP;
 
-        if (is_centered(g->x, g->y)) {
-            Vector2 target;
-            if (g->state == SCATTER) {
-                target = g->scatter();
+        if (g->leave()) {
+            g->state = LEAVING_HOUSE;
+        }
+
+        return;
+    }
+
+    if (g->state == LEAVING_HOUSE) {
+        if (g->x < 108) {
+            g->x += 1;
+        } else if (g->x > 108) {
+            g->x -= 1;
+        } else {
+            if (g->y > 11 * TILE) {
+                g->y -= 1;
             } else {
-                target = g->chase();
-            }
-
-            const Dir dir = choose_ghost_direction(g, target);
-            if (dir != g->dir && g->pixels_moved > TILE) {
-                // printf("changing direction from %s to %s\n", dir_to_string(g->dir), dir_to_string(dir));
-                g->dir = dir;
-                g->pixels_moved = 0;
+                g->state = game.ghost_state;
+                g->dir = (rand() % 2 == 0) ? LEFT : RIGHT;
             }
         }
 
-        update_actor(g, get_ghost_speed(g));
-        if (g->x < 0) g->x += GAME_WIDTH * TILE;
-        if (g->x >= GAME_WIDTH * TILE) g->x -= GAME_WIDTH * TILE;
-        g->pixels_moved++;
+        return;
+    }
+
+    if (is_centered(g->x, g->y)) {
+        Vector2 target;
+        if (g->state == SCATTER) {
+            target = g->scatter();
+        } else {
+            target = g->chase();
+        }
+
+        const Dir dir = choose_ghost_direction(g, target);
+        if (dir != g->dir && g->pixels_moved > TILE) {
+            // printf("changing direction from %s to %s\n", dir_to_string(g->dir), dir_to_string(dir));
+            g->dir = dir;
+            g->pixels_moved = 0;
+        }
+    }
+
+    update_actor(g, get_ghost_speed(g));
+    if (g->x < 0) g->x += GAME_WIDTH * TILE;
+    if (g->x >= GAME_WIDTH * TILE) g->x -= GAME_WIDTH * TILE;
+    g->pixels_moved++;
+}
+
+void update_ghosts() {
+    for (int i = 0; i < NUM_GHOSTS; i++) {
+        update_ghost(&game.ghosts[i]);
     }
 }
