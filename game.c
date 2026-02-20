@@ -10,6 +10,7 @@
 #include "player.h"
 #include "ghost.h"
 #include "level.h"
+#include "prng.h"
 
 void init_game(void) {
     game.is_pacman = false; // false is ms_pacman
@@ -31,6 +32,7 @@ void init_level(int level) {
     game.ghost_state = SCATTER;
     game.ghost_phase_index = 0;
     game.ghost_phase_change = get_ghost_mode_phase(level, 0).duration_frames;
+    reset_prng();
 }
 
 const char *dir_to_string(const Dir dir) {

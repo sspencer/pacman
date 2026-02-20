@@ -11,6 +11,7 @@
 
 #include "maze.h"
 #include "level.h"
+#include "prng.h"
 
 static Vector2 pos_to_tile(const int x, const int y) {
     return (Vector2){
@@ -205,10 +206,7 @@ static Vector2 normalize_tunnel_tile(Vector2 tile) {
     return tile;
 }
 
-static Dir opposite_dir(Dir current) {
-    if (current == DIR_NONE) return DIR_NONE;
-    return (Dir) ((current + 2) % 4);
-}
+
 
 static bool is_valid_ghost_tile(const Vector2 tile, const GhostState state) {
     const Vector2 wrapped_tile = normalize_tunnel_tile(tile);
@@ -231,15 +229,26 @@ static bool is_valid_ghost_tile(const Vector2 tile, const GhostState state) {
 static Dir choose_ghost_direction(Actor *g, const Vector2 target) {
     if (g->reverse) {
         g->reverse = false;
-        return opposite_dir(g->dir);
+        return opposite_dir[g->dir];
     }
+
 
     int valid_dirs = 0;
     const Vector2 tile = pos_to_tile(g->x, g->y);
+
+    if (g->state == FRIGHTENED) {
+        if (is_valid_ghost_tile(get_next_tile(tile, UP), FRIGHTENED)) valid_dirs |= UP_MASK;
+        if (is_valid_ghost_tile(get_next_tile(tile, RIGHT), FRIGHTENED)) valid_dirs |= RIGHT_MASK;
+        if (is_valid_ghost_tile(get_next_tile(tile, DOWN), FRIGHTENED)) valid_dirs |= DOWN_MASK;
+        if (is_valid_ghost_tile(get_next_tile(tile, LEFT), FRIGHTENED)) valid_dirs |= LEFT_MASK;
+
+        return choose_frightened_direction(g->dir, valid_dirs);
+    }
+
     static constexpr Dir dir_priority[4] = {UP, LEFT, DOWN, RIGHT};
     for (int i = 0; i < 4; i++) {
         const Dir dir = dir_priority[i];
-        if (dir == opposite_dir(g->dir)) continue;
+        if (dir == opposite_dir[g->dir]) continue;
         const Vector2 next_tile = get_next_tile(tile, dir);
         if (is_valid_ghost_tile(next_tile, g->state)) {
             valid_dirs |= 1 << dir;
@@ -308,7 +317,8 @@ static void update_ghost(Actor *g) {
                 g->y -= 1;
             } else {
                 g->state = game.ghost_state;
-                g->dir = (rand() % 2 == 0) ? LEFT : RIGHT;
+                // g->dir = (rand() % 2 == 0) ? LEFT : RIGHT;
+                g->dir = choose_random_direction(RIGHT, RIGHT_MASK | LEFT_MASK);
             }
         }
 
@@ -331,8 +341,10 @@ static void update_ghost(Actor *g) {
 
         } else if (g->state == SCATTER) {
             target = g->scatter();
+        } else if (g->state == FRIGHTENED) {
+            // target ignored in FRIGHTENED mode
+            target = (Vector2){};
         } else {
-            // TODO add clause for FRIGHTENED??
             target = g->chase();
         }
 

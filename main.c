@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <raylib.h>
+#include <stdlib.h>
+
 #include "game.h"
 #include "ghost.h"
 #include "maze.h"
 #include "player.h"
+#include "prng.h"
 
 void load_chroma_shader(void);
 
@@ -11,6 +14,9 @@ void load_chroma_shader(void);
 Game game;
 
 int main(void) {
+    // Seed for reproducibility (simulating fixed ROM patterns)
+    srand(42);
+
     game.screen_zoom = 4.0f;
 
     InitWindow(SCREEN_WIDTH * TILE * game.screen_zoom, SCREEN_HEIGHT * TILE * game.screen_zoom, "Ms. Pacman");
@@ -19,6 +25,7 @@ int main(void) {
 
     event_stack_init();
     init_game();
+    init_prng();
     init_level(1);
     load_chroma_shader();
     init_pacman(&game.player);

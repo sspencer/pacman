@@ -36,7 +36,9 @@ add_executable(${PROJECT_NAME} main.c
         ghost.h
         level.h
         event.c
-        event.h)
+        event.h
+        prng.c
+        prng.h)
 
 target_link_libraries(${PROJECT_NAME} raylib)
 

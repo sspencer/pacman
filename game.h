@@ -47,8 +47,17 @@ typedef enum
     RIGHT,
     DOWN,
     LEFT,
+    DIR_COUNT,
     DIR_NONE
 } Dir;
+
+// Opposite direction (for forbidding 180° reverse)
+static constexpr Dir opposite_dir[DIR_COUNT] = {
+    DOWN,
+    LEFT,
+    UP,
+    RIGHT,
+ };
 
 typedef enum
 {
