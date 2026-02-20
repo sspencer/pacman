@@ -184,6 +184,19 @@ static bool collide(float px, float py, float gx, float gy) {
             pBottom > gTop);
 }
 
+static void check_for_collisions(void) {
+    const Actor *p = &game.player;
+    for (int i = 0; i < NUM_GHOSTS; i++) {
+        const Actor *g = &game.ghosts[i];
+        if (collide(p->x, p->y, g->x, g->y)) {
+            if (g->state == FRIGHTENED) {
+                event_stack_push((Event){PLAYER_ATE_GHOST, g->id, g->x, g->y});
+            } else if (!p->is_eaten) {
+                event_stack_push((Event){GHOST_ATE_PLAYER, p->id, p->x, p->y});
+            }
+        }
+    }
+}
 
 static void process_events(void) {
     Event event;
@@ -215,9 +228,15 @@ static void process_events(void) {
                 break;
             case GHOST_ATE_PLAYER:
                 printf("ghost ate player\n");
+                game.player.is_eaten = true;
                 break;
             case PLAYER_ATE_GHOST:
                 printf("player ate ghost\n");
+                for (int i = 0; i < NUM_GHOSTS; i++) {
+                    if (game.ghosts[i].id == event.id) {
+                        game.ghosts[i].state = EATEN;
+                    }
+                }
                 break;
             case GHOST_STATE_CHANGE:
                 printf("ghost state change\n");
@@ -239,7 +258,9 @@ static void process_events(void) {
                     game.is_fright_mode = false;
                     game.frightened_flashes = 0;
                     game.frightened_frames = 0;
-                    game.ghosts[i].state = CHASE;
+                    if (game.ghosts[i].state == FRIGHTENED) {
+                        game.ghosts[i].state = CHASE;
+                    }
                 }
 
         }
@@ -263,6 +284,7 @@ void update_game(void) {
 
     game.level_frame_count++;
 
+
     if (game.is_fright_mode) {
         game.frightened_frames--;
         if (game.frightened_frames == 0) {
@@ -275,6 +297,7 @@ void update_game(void) {
         }
     }
 
+    check_for_collisions();
     process_events();
     update_ghosts();
     process_events();

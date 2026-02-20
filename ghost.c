@@ -223,7 +223,7 @@ static bool is_valid_ghost_tile(const Vector2 tile, const GhostState state) {
     }
 
     if (t == TILE_WALL) return false;
-    if (t == TILE_DOOR) return state == LEAVING_HOUSE;
+    if (t == TILE_DOOR) return (state == LEAVING_HOUSE || state == EATEN);
 
     return true;
 }
@@ -312,11 +312,22 @@ static void update_ghost(Actor *g) {
         return;
     }
 
+    if (g->state == EATEN) {
+        if (g->x == HOUSE_X && g->y == HOUSE_Y) {
+            printf("EYES MADE IT TO HOUSE DOOR");
+            g->state = CHASE;
+            return;
+        }
+    }
     if (is_centered(g->x, g->y)) {
         Vector2 target;
-        if (g->state == SCATTER) {
+        if (g->state == EATEN) {
+            target = (Vector2){14, 11};
+
+        } else if (g->state == SCATTER) {
             target = g->scatter();
         } else {
+            // TODO add clause for FRIGHTENED??
             target = g->chase();
         }
 

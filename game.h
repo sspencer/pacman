@@ -145,7 +145,7 @@ typedef struct
     int frames_to_pause; // pacman slows when eating dots
 
     // bool is_frightened; // is_elroy1, is_elroy2
-    // bool is_eaten;
+    bool is_eaten;
     bool is_player;
     GhostState state;
     bool reverse; // ghosts reverse directions after CHASE / SCATTER state changes

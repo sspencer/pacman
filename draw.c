@@ -73,7 +73,7 @@ static void draw_sprite(const float x, const float y, const float sx, const floa
 }
 
 static Vector2 get_eye_sprite(Dir dir) {
-    static constexpr float eyes_x[4] = {616, 632, 600, 584}; // north, south, east, west
+    static constexpr float eyes_x[4] = { 616, 584, 632, 600 };
 
     return (Vector2){eyes_x[dir], 80};
 }

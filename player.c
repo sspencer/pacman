@@ -19,6 +19,7 @@ void init_pacman(Actor *pacman) {
     pacman->frame_count = 0;
     pacman->frame_index = 0;
     pacman->frames_to_pause = 0;
+    pacman->is_eaten = false;
 }
 
 static bool can_pacman_move(const int tx, const int ty, Dir dir) {
