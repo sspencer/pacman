@@ -127,9 +127,7 @@ void draw_ghost_score(int x, int y, int score) {
     static constexpr float score_x[4] = { 456, 472, 488, 504 };
     static constexpr float score_y = 128;
 
-    if (score < 0 || score > 3) score = 0;
-
-    draw_sprite((float)x, (float)y, score_x[score], score_y, 0);
+    draw_sprite((float)x, (float)y, score_x[score % 4], score_y, 0);
 }
 
 void draw_ghosts(void) {

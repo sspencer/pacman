@@ -10,7 +10,9 @@ typedef enum {
     PLAYER_ATE_DOT,
     PLAYER_ATE_POWERUP,
     GHOST_STATE_CHANGE,
-    FRIGHT_MODE_END
+    FRIGHT_MODE_END,
+    LEVEL_COMPLETE,
+
 } EventType;
 
 typedef struct {

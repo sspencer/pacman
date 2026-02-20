@@ -178,6 +178,7 @@ typedef struct
     int score;
     int dots_eaten;
     int dots_remaining;
+    int ghosts_eaten;
     GhostState ghost_state;
     uint32_t ghost_phase_change;
     uint32_t ghost_phase_index;

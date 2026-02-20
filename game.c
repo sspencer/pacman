@@ -93,6 +93,11 @@ uint32_t get_ghost_speed(const Actor *g) {
     return game.level_spec.ghost_speed;
 }
 
+int get_ghost_score(int ghost_eaten) {
+    int ghost_scores[4] = {200, 400, 800, 1600};
+    return ghost_scores[ghost_eaten % 4];
+}
+
 uint32_t get_player_speed(void) {
     if (game.is_fright_mode) {
         return game.level_spec.pacman_fright_speed;
@@ -206,15 +211,17 @@ static void process_events(void) {
         switch (event.type) {
             case PLAYER_ATE_DOT:
                 game.maze[event.y][event.x] = TILE_EMPTY;
-                game.player.frame_count += DOT_EAT_PAUSE;
-                game.score += DOT_SCORE;
                 game.dots_eaten++;
                 game.dots_remaining--;
+                game.player.frame_count += DOT_EAT_PAUSE;
+                game.score += DOT_SCORE;
                 break;
             case PLAYER_ATE_POWERUP:
                 // TODO frighten ghosts
-                game.is_fright_mode = true;
                 game.maze[event.y][event.x] = TILE_EMPTY;
+                game.dots_remaining--;
+                game.ghosts_eaten = 0;
+                game.is_fright_mode = true;
                 game.player.frames_to_pause = POWER_EAT_PAUSE;
                 game.score += POWER_SCORE;
                 game.frightened_frames = game.level_spec.frightened_frames;
@@ -237,6 +244,7 @@ static void process_events(void) {
                 for (int i = 0; i < NUM_GHOSTS; i++) {
                     if (game.ghosts[i].id == event.id) {
                         game.ghosts[i].state = EATEN;
+                        game.score += get_ghost_score(game.ghosts_eaten++);
                     }
                 }
                 break;
@@ -264,7 +272,9 @@ static void process_events(void) {
                         game.ghosts[i].state = CHASE;
                     }
                 }
-
+            case LEVEL_COMPLETE:
+                printf("level over\n");
+                game.is_paused = true;
         }
     }
 }
@@ -285,6 +295,10 @@ void update_game(void) {
     if (game.is_paused) return;
 
     game.level_frame_count++;
+
+    if (game.dots_remaining == 0) {
+        event_stack_push((Event){LEVEL_COMPLETE, 0, 0, 0});
+    }
 
 
     if (game.is_fright_mode) {

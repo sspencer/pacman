@@ -112,7 +112,7 @@ void init_maze(const int level) {
             switch (mask) {
                 case EMPTY_MASK: maze[y][x] = TILE_EMPTY; break;
                 case DOT_MASK: maze[y][x] = TILE_DOT; game.dots_remaining++; break;
-                case POWER_MASK: maze[y][x] = TILE_POWER; break;
+                case POWER_MASK: maze[y][x] = TILE_POWER; game.dots_remaining++; break;
                 case DOOR_MASK: maze[y][x] = TILE_DOOR; break;
                 default: maze[y][x] = TILE_WALL; break;
             }
