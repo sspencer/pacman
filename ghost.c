@@ -281,6 +281,9 @@ static void update_ghost_frame(Actor *g) {
 }
 
 static void update_ghost(Actor *g) {
+    static constexpr int eaten_target_x = 14 * TILE;
+    static constexpr int eaten_target_y = 11 * TILE;
+
     update_ghost_frame(g);
 
     if (g->state == IN_HOUSE) {
@@ -313,7 +316,9 @@ static void update_ghost(Actor *g) {
     }
 
     if (g->state == EATEN) {
-        if (g->x == HOUSE_X && g->y == HOUSE_Y) {
+        // EATEN routing targets tile (14,11). Transition on the same pixel target
+        // so ghosts don't keep re-pathing and flipping eyes at the house entrance.
+        if (g->x == eaten_target_x && g->y == eaten_target_y) {
             printf("EYES MADE IT TO HOUSE DOOR");
             g->state = CHASE;
             return;
@@ -322,7 +327,7 @@ static void update_ghost(Actor *g) {
     if (is_centered(g->x, g->y)) {
         Vector2 target;
         if (g->state == EATEN) {
-            target = (Vector2){14, 11};
+            target = (Vector2){(float)(eaten_target_x / TILE), (float)(eaten_target_y / TILE)};
 
         } else if (g->state == SCATTER) {
             target = g->scatter();

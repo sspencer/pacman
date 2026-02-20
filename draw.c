@@ -127,9 +127,13 @@ void draw_ghosts(void) {
     for (int i = 0; i < NUM_GHOSTS; i++) {
         Actor *g = &game.ghosts[i];
         Vector2 sprite;
+        int frame = g->frame_index;
 
         if (g->state == EATEN) {
             sprite = get_eye_sprite(g->dir);
+            // Eyes are directional but not animated; advancing frame index
+            // shifts to neighboring atlas columns and looks like dir flicker.
+            frame = 0;
         } else if (g->state == FRIGHTENED) {
             // TODO change delta_time to frame count
             sprite = get_frightened_sprite(g->dir);
@@ -137,7 +141,7 @@ void draw_ghosts(void) {
             sprite = get_ghost_sprite(i, g->dir);
         }
 
-        draw_sprite((float)g->x, (float)g->y, sprite.x, sprite.y, g->frame_index);
+        draw_sprite((float)g->x, (float)g->y, sprite.x, sprite.y, (float)frame);
     }
 }
 
