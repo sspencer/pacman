@@ -296,12 +296,12 @@ static void update_ghost(Actor *g) {
     }
 
     if (g->state == LEAVING_HOUSE) {
-        if (g->x < 108) {
+        if (g->x < HOUSE_X) {
             g->x += 1;
-        } else if (g->x > 108) {
+        } else if (g->x > HOUSE_X) {
             g->x -= 1;
         } else {
-            if (g->y > 11 * TILE) {
+            if (g->y > HOUSE_Y) {
                 g->y -= 1;
             } else {
                 g->state = game.ghost_state;

@@ -21,6 +21,8 @@
 #define NUM_GHOSTS 4
 #define BOUNCE_SPEED 0.1f
 #define BOUNCE_AMPLITUDE 4.0f
+#define HOUSE_X 108
+#define HOUSE_Y 88
 
 #define POWER_EAT_PAUSE 3
 #define DOT_EAT_PAUSE 1
