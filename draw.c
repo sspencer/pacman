@@ -123,6 +123,15 @@ void draw_food_old() {
     draw_sprite(center, sprite, 0);
 }
 */
+void draw_ghost_score(int x, int y, int score) {
+    static constexpr float score_x[4] = { 456, 472, 488, 504 };
+    static constexpr float score_y = 128;
+
+    if (score < 0 || score > 3) score = 0;
+
+    draw_sprite((float)x, (float)y, score_x[score], score_y, 0);
+}
+
 void draw_ghosts(void) {
     for (int i = 0; i < NUM_GHOSTS; i++) {
         Actor *g = &game.ghosts[i];

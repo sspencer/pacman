@@ -15,6 +15,8 @@ void draw_ms_pacman(Actor *);
 
 void draw_ghosts(void);
 
+void draw_ghost_score(int, int, int);
+
 void draw_checkerboard(void);
 
 void draw_scores(void);

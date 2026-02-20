@@ -317,7 +317,6 @@ static void update_ghost(Actor *g) {
                 g->y -= 1;
             } else {
                 g->state = game.ghost_state;
-                // g->dir = (rand() % 2 == 0) ? LEFT : RIGHT;
                 g->dir = choose_random_direction(RIGHT, RIGHT_MASK | LEFT_MASK);
             }
         }
@@ -330,7 +329,7 @@ static void update_ghost(Actor *g) {
         // so ghosts don't keep re-pathing and flipping eyes at the house entrance.
         if (g->x == eaten_target_x && g->y == eaten_target_y) {
             printf("EYES MADE IT TO HOUSE DOOR");
-            g->state = CHASE;
+            g->state = game.ghost_state;
             return;
         }
     }

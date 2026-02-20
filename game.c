@@ -354,6 +354,7 @@ void draw_game(void) {
     //------------ DRAW SPRITES ------------
     BeginMode2D(sprite_camera);
     BeginShaderMode(game.chroma_shader); // shader makes BLACK transparent
+
     if (game.is_pacman) {
         draw_pacman(&game.player);
     } else {
