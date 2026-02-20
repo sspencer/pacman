@@ -175,7 +175,7 @@ void draw_checkerboard(void) {
             DrawRectangleRec(rec, c);
             i += 1;
 
-            if (tile == TILE_GHOST_WALL) {
+            if (is_ghost_wall(x, y)) {
                 DrawRectangleRec(rec, RED);
             } else if (tile == TILE_TUNNEL) {
                 DrawRectangleRec(rec, PINK);

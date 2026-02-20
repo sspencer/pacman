@@ -20,6 +20,17 @@ static Vector2 pos_to_tile(const int x, const int y) {
     };
 }
 
+static Vector2 pixel_to_tile(const Vector2 pixel) {
+    return (Vector2){
+        floorf(pixel.x / TILE),
+        floorf(pixel.y / TILE)
+    };
+}
+
+static Vector2 tile_to_pixel(const Vector2 tile) {
+    return (Vector2){tile.x * TILE, tile.y * TILE};
+}
+
 Vector2 get_next_tile(Vector2 tile, const Dir dir) {
     Vector2 next = (Vector2){tile.x, tile.y};
     switch (dir) {
@@ -36,7 +47,7 @@ Vector2 get_next_tile(Vector2 tile, const Dir dir) {
 }
 
 Vector2 blinky_chase(void) {
-    return pos_to_tile(game.player.x, game.player.y);
+    return (Vector2){(float) game.player.x, (float) game.player.y};
 }
 
 bool blinky_leave(void) {
@@ -44,7 +55,7 @@ bool blinky_leave(void) {
 }
 
 Vector2 blinky_scatter(void) {
-    return (Vector2){26, (float) get_maze_top(game.level)};
+    return tile_to_pixel((Vector2){26, (float) get_maze_top(game.level)});
 }
 
 Vector2 inky_chase(void) {
@@ -68,10 +79,10 @@ Vector2 inky_chase(void) {
     const Vector2 blinky = pos_to_tile(game.ghosts[BLINKY].x, game.ghosts[BLINKY].y); // YES, BLINKY
     const float dx = pivot.x - blinky.x;
     const float dy = pivot.y - blinky.y;
-    return (Vector2){
+    return tile_to_pixel((Vector2){
         blinky.x + 2 * dx,
         blinky.y + 2 * dy
-    };
+    });
 }
 
 bool inky_leave(void) {
@@ -83,7 +94,7 @@ bool inky_leave(void) {
 }
 
 Vector2 inky_scatter(void) {
-    return (Vector2){1, 29};
+    return tile_to_pixel((Vector2){1, 29});
 }
 
 Vector2 pinky_chase(void) {
@@ -103,7 +114,7 @@ Vector2 pinky_chase(void) {
     }
 
     const Vector2 player = pos_to_tile(game.player.x, game.player.y);
-    return (Vector2){player.x + vx, player.y + vy};
+    return tile_to_pixel((Vector2){player.x + vx, player.y + vy});
 }
 
 bool pinky_leave(void) {
@@ -111,11 +122,11 @@ bool pinky_leave(void) {
 }
 
 Vector2 pinky_scatter(void) {
-    return (Vector2){1, (float) get_maze_top(game.level)};
+    return tile_to_pixel((Vector2){1, (float) get_maze_top(game.level)});
 }
 
 Vector2 sue_scatter(void) {
-    return (Vector2){26, 29};
+    return tile_to_pixel((Vector2){26, 29});
 }
 
 Vector2 sue_chase(void) {
@@ -128,7 +139,7 @@ Vector2 sue_chase(void) {
     const float dy = pv.y - sv.y;
     const float dist = sqrtf(dx * dx + dy * dy);
     if (dist >= 8.0f) {
-        return pv;
+        return tile_to_pixel(pv);
     }
 
     return sue_scatter();
@@ -214,10 +225,12 @@ static bool is_valid_ghost_tile(const Vector2 tile, const GhostState state) {
         return false;
     }
 
-    const Tile t = game.maze[(int) wrapped_tile.y][(int) wrapped_tile.x];
+    int x = (int) wrapped_tile.x;
+    int y = (int) wrapped_tile.y;
+    const Tile t = game.maze[y][x];
 
     if (state == CHASE || state == SCATTER) {
-        if (t == TILE_WALL || t == TILE_GHOST_WALL) return false;
+        if (t == TILE_WALL || is_ghost_wall(x, y)) return false;
     }
 
     if (t == TILE_WALL) return false;
@@ -259,11 +272,12 @@ static Dir choose_ghost_direction(Actor *g, const Vector2 target) {
 
     Dir best_dir = DIR_NONE;
     float min_distance = MAXFLOAT;
+    const Vector2 target_tile = pixel_to_tile(target);
     for (int i = 0; i < 4; i++) {
         const Dir dir = dir_priority[i];
         if (valid_dirs & 1 << dir) {
             const Vector2 next_tile = normalize_tunnel_tile(get_next_tile(tile, dir));
-            const float dist = distance_between(target, next_tile);
+            const float dist = distance_between(target_tile, next_tile);
             if (dist < min_distance) {
                 min_distance = dist;
                 best_dir = dir;
@@ -336,7 +350,7 @@ static void update_ghost(Actor *g) {
     if (is_centered(g->x, g->y)) {
         Vector2 target;
         if (g->state == EATEN) {
-            target = (Vector2){(float)(eaten_target_x / TILE), (float)(eaten_target_y / TILE)};
+            target = (Vector2){(float)eaten_target_x, (float)eaten_target_y};
 
         } else if (g->state == SCATTER) {
             target = g->scatter();

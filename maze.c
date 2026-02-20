@@ -120,40 +120,30 @@ void init_maze(const int level) {
     }
 
     if (maze_num == 0) {
-        maze[10][9] = TILE_GHOST_WALL;
-        maze[10][18] = TILE_GHOST_WALL;
-        maze[22][9] = TILE_GHOST_WALL;
-        maze[22][18] = TILE_GHOST_WALL;
         set_tunnels(1, 26, 8);
         set_tunnels(1, 26, 17);
     } else if (maze_num == 1) {
-        maze[10][9] = TILE_GHOST_WALL;
-        maze[10][18] = TILE_GHOST_WALL;
-        maze[22][11] = TILE_GHOST_WALL;
-        maze[22][16] = TILE_GHOST_WALL;
         set_tunnels(4, 23, 1);
         set_tunnels(1, 26, 23);
     } else if (maze_num == 2) {
-        maze[10][9] = TILE_GHOST_WALL;
-        maze[10][18] = TILE_GHOST_WALL;
-        maze[22][9] = TILE_GHOST_WALL;
-        maze[22][18] = TILE_GHOST_WALL;
         set_tunnels(0, 27, 9);
     } else if (maze_num == 3) {
-        maze[10][12] = TILE_GHOST_WALL;
-        maze[10][15] = TILE_GHOST_WALL;
-        maze[19][12] = TILE_GHOST_WALL;
-        maze[19][15] = TILE_GHOST_WALL;
         set_tunnels(1, 26, 13);
         set_tunnels(1, 26, 16);
     } else {
         // pacman
-        maze[10][12] = TILE_GHOST_WALL;
-        maze[10][15] = TILE_GHOST_WALL;
-        maze[22][12] = TILE_GHOST_WALL;
-        maze[22][15] = TILE_GHOST_WALL;
         set_tunnels(4, 23, 14);
     }
 
     UnloadImage(image);
+}
+
+bool is_ghost_wall(int x, int y) {
+    int maze_num = get_maze_num(game.level);
+    switch (maze_num) {
+        case 0: return (y == 10 || y == 22) && (x == 9 || x == 18);
+        case 1: return (y == 10 || y == 22) && (x == 11 || x == 16);
+        case 2: return (y == 10 || y == 22) && (x == 9 || x == 18);
+        default: return (y == 10 || y == 22) && (x == 12 || x == 15); // maze 3 or pacman
+    }
 }

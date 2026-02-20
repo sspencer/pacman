@@ -212,14 +212,17 @@ static void process_events(void) {
             case PLAYER_ATE_DOT:
                 game.maze[event.y][event.x] = TILE_EMPTY;
                 game.dots_eaten++;
-                game.dots_remaining--;
+                //game.dots_remaining--;
+                printf("dots: %d/%d\n", game.dots_eaten, game.dots_remaining);
                 game.player.frame_count += DOT_EAT_PAUSE;
                 game.score += DOT_SCORE;
                 break;
             case PLAYER_ATE_POWERUP:
                 // TODO frighten ghosts
                 game.maze[event.y][event.x] = TILE_EMPTY;
-                game.dots_remaining--;
+                game.dots_eaten++;
+                //game.dots_remaining--;
+                printf("power dots: %d/%d\n", game.dots_eaten, game.dots_remaining);
                 game.ghosts_eaten = 0;
                 game.is_fright_mode = true;
                 game.player.frames_to_pause = POWER_EAT_PAUSE;
@@ -272,9 +275,11 @@ static void process_events(void) {
                         game.ghosts[i].state = CHASE;
                     }
                 }
+                break;
             case LEVEL_COMPLETE:
                 printf("level over\n");
                 game.is_paused = true;
+                break;
         }
     }
 }

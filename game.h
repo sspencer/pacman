@@ -37,7 +37,6 @@ typedef enum
     TILE_DOT,
     TILE_POWER,
     TILE_EMPTY,
-    TILE_GHOST_WALL,
     TILE_TUNNEL
 } Tile;
 
@@ -161,9 +160,9 @@ typedef struct
     float bounce; // ghost (in house) bounce distance
 
     // Ghost Behavior
-    Vector2 (*chase)(void);   // CHASE target
+    Vector2 (*chase)(void);   // CHASE target (pixel coordinates)
     bool (*leave)(void);      // time to LEAVE the house
-    Vector2 (*scatter)(void); // SCATTER target
+    Vector2 (*scatter)(void); // SCATTER target (pixel coordinates)
 } Actor;
 
 typedef struct
