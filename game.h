@@ -24,6 +24,7 @@
 #define HOUSE_X 108
 #define HOUSE_Y 88
 
+#define GHOST_EAT_PAUSE 61
 #define POWER_EAT_PAUSE 3
 #define DOT_EAT_PAUSE 1
 #define POWER_SCORE 50
@@ -178,6 +179,9 @@ typedef struct
     int dots_eaten;
     int dots_remaining;
     int ghosts_eaten;
+    int score_pause; // frames
+    int score_x;
+    int score_y;
     GhostState ghost_state;
     uint32_t ghost_phase_change;
     uint32_t ghost_phase_index;

@@ -212,8 +212,7 @@ static void process_events(void) {
             case PLAYER_ATE_DOT:
                 game.maze[event.y][event.x] = TILE_EMPTY;
                 game.dots_eaten++;
-                //game.dots_remaining--;
-                printf("dots: %d/%d\n", game.dots_eaten, game.dots_remaining);
+                game.dots_remaining--;
                 game.player.frame_count += DOT_EAT_PAUSE;
                 game.score += DOT_SCORE;
                 break;
@@ -221,8 +220,7 @@ static void process_events(void) {
                 // TODO frighten ghosts
                 game.maze[event.y][event.x] = TILE_EMPTY;
                 game.dots_eaten++;
-                //game.dots_remaining--;
-                printf("power dots: %d/%d\n", game.dots_eaten, game.dots_remaining);
+                game.dots_remaining--;
                 game.ghosts_eaten = 0;
                 game.is_fright_mode = true;
                 game.player.frames_to_pause = POWER_EAT_PAUSE;
@@ -243,11 +241,17 @@ static void process_events(void) {
                 game.player.is_eaten = true;
                 break;
             case PLAYER_ATE_GHOST:
-                printf("player ate ghost\n");
+                printf("player ate ghost at %d, %d\n", event.x, event.y);
+
                 for (int i = 0; i < NUM_GHOSTS; i++) {
-                    if (game.ghosts[i].id == event.id) {
-                        game.ghosts[i].state = EATEN;
-                        game.score += get_ghost_score(game.ghosts_eaten++);
+                    Actor *g = &game.ghosts[i];
+                    if (g->id == event.id) {
+                        g->state = EATEN;
+                        game.score += get_ghost_score(game.ghosts_eaten);
+                        game.score_pause = GHOST_EAT_PAUSE;
+                        game.score_x = event.x;
+                        game.score_y = event.y;
+                        return; // only score one score at a time
                     }
                 }
                 break;
@@ -298,6 +302,14 @@ void update_game(void) {
     }
 
     if (game.is_paused) return;
+
+    if (game.score_pause > 0) {
+        game.score_pause--;
+        if (game.score_pause == 0) {
+            game.ghosts_eaten++;
+        }
+        return;
+    }
 
     game.level_frame_count++;
 
@@ -381,6 +393,9 @@ void draw_game(void) {
     }
 
     draw_ghosts();
+    if (game.score_pause > 0) {
+        draw_ghost_score(game.score_x, game.score_y, game.ghosts_eaten);
+    }
     // game.paused = true;
     //draw_food();
     EndShaderMode();
