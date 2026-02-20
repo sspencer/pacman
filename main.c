@@ -1,120 +1,59 @@
-#include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>  // For getpid()
-
-#include "raylib.h"
+#include <raylib.h>
 #include "game.h"
-#include "maze.h"
-#include "pacman.h"
 #include "ghost.h"
-#include "world.h"
+#include "maze.h"
+#include "player.h"
 
-world_t world;
-float screen_zoom = 1.0f;
+void load_chroma_shader(void);
 
-Shader chroma_shader() {
-    const Shader shader = LoadShader(NULL, "assets/chroma_key.fs");
-    const float key_color[3] = {0.0f, 0.0f, 0.0f};
-    const float threshold = 0.05f;
-    const int key_color_loc = GetShaderLocation(shader, "keyColor");
-    const int threshold_loc = GetShaderLocation(shader, "threshold");
-
-    SetShaderValue(shader, key_color_loc, key_color, SHADER_UNIFORM_VEC3);
-    SetShaderValue(shader, threshold_loc, &threshold, SHADER_UNIFORM_FLOAT);
-
-    return shader;
-}
-
-static Vector2 monitor_size() {
-    // Need an initial window to reliably get the screen size so an appropriate zoom level may be set
-    // Make the initial window hidden so it won't flash on screen
-    SetConfigFlags(FLAG_WINDOW_HIDDEN);
-
-    // Create a tiny hidden window which forces raylib/GLFW to initialise
-    InitWindow(1, 1, "init-hidden");
-
-    // Now monitor queries are reliable
-    const int currentMon = GetCurrentMonitor();   // should be valid now
-    const int sh = GetMonitorHeight(currentMon);
-    const int sw = GetMonitorWidth(currentMon);
-
-    CloseWindow();
-    ClearWindowState(FLAG_WINDOW_HIDDEN);
-
-    // TODO remove this magic
-    // subtracting magic value from height so zoom isn't too large on my dev machine
-    return (Vector2){(float)sw, (float)(sh-350)};
-}
-
-static unsigned int get_good_seed() {
-    unsigned int seed;
-    FILE *urandom = fopen("/dev/urandom", "rb");
-    if (urandom != NULL) {
-        if (fread(&seed, sizeof(seed), 1, urandom) == 1) {
-            fclose(urandom);
-            return seed;
-        }
-        fclose(urandom);
-    }
-    // Fallback if /dev/urandom is unavailable or fails
-    return (unsigned int)time(NULL) ^ (unsigned int)getpid();
-}
+// globals
+Game game;
 
 int main(void) {
-    srand(get_good_seed());
+    game.screen_zoom = 4.0f;
 
-    const Vector2 mon = monitor_size();
-    screen_zoom = floorf(mon.y / (TILE * SCREEN_HEIGHT));
-    screen_zoom = 4.0f;
-
-    InitWindow(SCREEN_WIDTH * TILE * screen_zoom, SCREEN_HEIGHT * TILE * screen_zoom, "Ms. Pacman");
-    SetWindowPosition((int)mon.x - (int)(SCREEN_WIDTH * TILE * screen_zoom), 0);
+    InitWindow(SCREEN_WIDTH * TILE * game.screen_zoom, SCREEN_HEIGHT * TILE * game.screen_zoom, "Ms. Pacman");
     SetTraceLogLevel(LOG_WARNING);
-    SetTargetFPS(60);
+    SetTargetFPS(62);
 
-    world.font = LoadTexture("assets/font.png");
-    world.texture = LoadTexture("assets/game.png");
-    world.image = LoadImageFromTexture(world.texture);
-    world.game.level = 0;
-    world.game.paused = false;
-    world.game.score = 0;
-    world.game.dots_eaten = 0;
-    world.game.debug = false;
-
-    map_maze(&world.game);
-
-    init_pacman(&world.pacman);
-    init_ghost(&world.ghosts[GHOST_BLINKY], blinky_data());
-    init_ghost(&world.ghosts[GHOST_INKY], inky_data());
-    init_ghost(&world.ghosts[GHOST_PINKY], pinky_data());
-    init_ghost(&world.ghosts[GHOST_SUE], sue_data());
-
-    const Shader shader = chroma_shader();
-
-    world.game.level_time = 0.0; // TODO reset for every level
-
-    double last_frame_time = GetTime();
+    event_stack_init();
+    init_game();
+    init_level(1);
+    load_chroma_shader();
+    init_pacman(&game.player);
+    init_blinky(&game.ghosts[BLINKY]);
+    init_inky(&game.ghosts[INKY]);
+    init_pinky(&game.ghosts[PINKY]);
+    init_sue(&game.ghosts[SUE]);
+    init_maze(game.level);
+    // need a init_level func
+    game.frame_count = 0;
 
     while (!WindowShouldClose()) {
-        const double current_time = GetTime();
-        if (!world.game.paused) world.game.level_time += (current_time - last_frame_time);
-        last_frame_time = current_time;
-
-        update_world();
+        update_game();
 
         BeginDrawing();
         ClearBackground(BLACK);
-        draw_world(screen_zoom, shader);
+        draw_game();
         EndDrawing();
     }
 
-    UnloadImage(world.image);
-    UnloadTexture(world.texture);
-    UnloadTexture(world.font);
+    UnloadTexture(game.sprite_texture);
+    UnloadTexture(game.font_texture);
+    UnloadShader(game.chroma_shader);
     CloseWindow();
 
     return 0;
 }
 
+void load_chroma_shader(void) {
+    game.chroma_shader = LoadShader(NULL, "assets/chroma_key.fs");
+    constexpr float key_color[3] = {0.0f, 0.0f, 0.0f};
+    constexpr float threshold = 0.05f;
+    const int key_color_loc = GetShaderLocation(game.chroma_shader, "keyColor");
+    const int threshold_loc = GetShaderLocation(game.chroma_shader, "threshold");
+
+    SetShaderValue(game.chroma_shader, key_color_loc, key_color, SHADER_UNIFORM_VEC3);
+    SetShaderValue(game.chroma_shader, threshold_loc, &threshold, SHADER_UNIFORM_FLOAT);
+}

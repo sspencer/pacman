@@ -1,12 +1,13 @@
 //
-// Created by Steve Spencer on 12/4/25.
+// Created by Steve Spencer on 1/8/26.
 //
 
 #ifndef PACMAN_MAZE_H
 #define PACMAN_MAZE_H
-#include "game.h"
 
-void debug_maze(const game_t *game);
-void map_maze(game_t *game);
+void init_maze(int level);
+int get_maze_num(int level);
+int get_maze_top(int level);
 
-#endif //PACMAN_MAZE_H
+#endif // PACMAN_MAZE_H
+

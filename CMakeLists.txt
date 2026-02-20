@@ -1,7 +1,9 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 4.1)
 project(pacman C)
 
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 set(PLATFORM NOT_THE_WEB)
 
 # Dependencies
@@ -22,18 +24,19 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
 endif()
 
 add_executable(${PROJECT_NAME} main.c
-        maze.h
-        maze.c
         game.h
+        game.c
+        maze.c
+        maze.h
+        player.c
+        player.h
         draw.c
         draw.h
-        pacman.c
-        pacman.h
         ghost.c
         ghost.h
-        world.c
-        world.h
-        game.c)
+        level.h
+        event.c
+        event.h)
 
 target_link_libraries(${PROJECT_NAME} raylib)
 

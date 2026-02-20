@@ -1,24 +1,40 @@
 //
-// Created by Steve Spencer on 12/11/25.
+// Created by Steve Spencer on 1/13/26.
 //
 
 #include "ghost.h"
 
 #include <math.h>
+#include <raylib.h>
 #include <stdio.h>
-#include <stdlib.h>
 
-static int maze_top(int level) {
-    // TODO change from level to board
-    if (level == 2) { // should be "board" not level
-        return 4;
+#include "maze.h"
+#include "level.h"
+
+static Vector2 pos_to_tile(const int x, const int y) {
+    return (Vector2){
+        floorf(((float) x /*- HALF*/) / TILE),
+        floorf(((float) y/* - HALF*/) / TILE)
+    };
+}
+
+Vector2 get_next_tile(Vector2 tile, const Dir dir) {
+    Vector2 next = (Vector2){tile.x, tile.y};
+    switch (dir) {
+        case UP: next.y--;
+            return next;
+        case DOWN: next.y++;
+            return next;
+        case LEFT: next.x--;
+            return next;
+        case RIGHT: next.x++;
+            return next;
+        default: return next;
     }
-
-    return 1;
 }
 
 Vector2 blinky_chase(void) {
-    return (Vector2){world.pacman.tile.x, world.pacman.tile.y};
+    return pos_to_tile(game.player.x, game.player.y);
 }
 
 bool blinky_leave(void) {
@@ -26,50 +42,39 @@ bool blinky_leave(void) {
 }
 
 Vector2 blinky_scatter(void) {
-    return (Vector2){26, (float)maze_top(world.game.level)};
-}
-
-ghost_data_t blinky_data() {
-    static ghost_data_t data = {
-        .sprite_y = 64,
-        .start = {13, 11},
-        .start_dir = DIR_WEST,
-        .start_state = STATE_SCATTER,
-        .chase = blinky_chase,
-        .leave = blinky_leave,
-        .scatter = blinky_scatter
-    };
-    return data;
+    return (Vector2){26, (float) get_maze_top(game.level)};
 }
 
 Vector2 inky_chase(void) {
-    entity_t *p = &world.pacman;
-    entity_t *blinky = &world.ghosts[GHOST_BLINKY];
-
     float vx = 0.0f, vy = 0.0f;
 
     // reproduces original chase bug for NORTH
     // to remove "bug", set vx=0
-    switch (p->dir) {
-        case DIR_NORTH: vx = -2.0f, vy = 2.0f; break;
-        case DIR_SOUTH: vy = 2.0f; break;
-        case DIR_EAST: vx = 2.0f; break;
-        default: vx = -2.0f; break;
+    switch (game.player.dir) {
+        case UP: vx = -2.0f, vy = -2.0f;
+            break;
+        case DOWN: vy = 2.0f;
+            break;
+        case RIGHT: vx = 2.0f;
+            break;
+        default: vx = -2.0f;
+            break;
     }
 
-    const Vector2 pivot = (Vector2){p->tile.x + vx, p->tile.y + vy};
-    const float dx = pivot.x - p->tile.x;
-    const float dy = pivot.y - p->tile.y;
-
+    const Vector2 player = pos_to_tile(game.player.x, game.player.y);
+    const Vector2 pivot = (Vector2){player.x + vx, player.y + vy};
+    const Vector2 blinky = pos_to_tile(game.ghosts[BLINKY].x, game.ghosts[BLINKY].y); // YES, BLINKY
+    const float dx = pivot.x - blinky.x;
+    const float dy = pivot.y - blinky.y;
     return (Vector2){
-        blinky->tile.x + 2 * dx,
-        blinky->tile.y + 2 * dy
+        blinky.x + 2 * dx,
+        blinky.y + 2 * dy
     };
 }
 
 bool inky_leave(void) {
-    if (world.game.dots_eaten > 30) {
-        return world.game.level_time > 7;
+    if (game.dots_eaten > 30) {
+        return game.frame_count > SECONDS_TO_FRAMES(7);
     }
 
     return false;
@@ -79,58 +84,32 @@ Vector2 inky_scatter(void) {
     return (Vector2){1, 29};
 }
 
-ghost_data_t inky_data() {
-    ghost_data_t data = {
-        .sprite_y = 96,
-        .start = {12, 14},
-        .start_dir = DIR_NORTH,
-        .start_state = STATE_IN_HOUSE,
-        .chase = inky_chase,
-        .leave = inky_leave,
-        .scatter = inky_scatter
-    };
-
-    return data;
-}
-
 Vector2 pinky_chase(void) {
-    entity_t *p = &world.pacman;
-
     float vx = 0.0f, vy = 0.0f;
 
     // reproduces original chase bug for NORTH
     // to remove "bug", set vx=0
-    switch (p->dir) {
-        case DIR_NORTH: vx = -4.0f, vy = -4.0f; break;
-        case DIR_SOUTH: vy = 4.0f; break;
-        case DIR_EAST: vx = 4.0f; break;
-        default: vx = -4.0f; break;
+    switch (game.player.dir) {
+        case UP: vx = -4.0f, vy = -4.0f;
+            break;
+        case DOWN: vy = 4.0f;
+            break;
+        case RIGHT: vx = 4.0f;
+            break;
+        default: vx = -4.0f;
+            break;
     }
 
-    const Vector2 pivot = (Vector2){p->tile.x + vx, p->tile.y + vy};
-    return pivot;
+    const Vector2 player = pos_to_tile(game.player.x, game.player.y);
+    return (Vector2){player.x + vx, player.y + vy};
 }
 
 bool pinky_leave(void) {
-    return world.game.level_time > 1;
+    return game.frame_count > SECONDS_TO_FRAMES(1);
 }
 
 Vector2 pinky_scatter(void) {
-    return (Vector2){1, (float)maze_top(world.game.level)};
-}
-
-ghost_data_t pinky_data() {
-    ghost_data_t data = {
-        .sprite_y = 80,
-        .start = {14, 14},
-        .start_dir = DIR_SOUTH,
-        .start_state = STATE_IN_HOUSE,
-        .chase = pinky_chase,
-        .leave = pinky_leave,
-        .scatter = pinky_scatter
-    };
-
-    return data;
+    return (Vector2){1, (float) get_maze_top(game.level)};
 }
 
 Vector2 sue_scatter(void) {
@@ -138,153 +117,135 @@ Vector2 sue_scatter(void) {
 }
 
 Vector2 sue_chase(void) {
-    entity_t *p = &world.pacman;
-    entity_t *g = &world.ghosts[GHOST_SUE];
-    float dx = p->tile.x - g->tile.x;
-    float dy = p->tile.y - g->tile.y;
-    float dist = sqrtf(dx * dx + dy * dy);
-    if (dist > 8) {
-        return p->tile;
+    Actor *pacman = &game.player;
+    Actor *sue = &game.ghosts[SUE];
+    const Vector2 pv = pos_to_tile(pacman->x, pacman->y);
+    const Vector2 sv = pos_to_tile(sue->x, sue->y);
+
+    const float dx = pv.x - sv.x;
+    const float dy = pv.y - sv.y;
+    const float dist = sqrtf(dx * dx + dy * dy);
+    if (dist >= 8.0f) {
+        return pv;
     }
 
     return sue_scatter();
 }
 
 bool sue_leave(void) {
-    if (world.game.dots_eaten > 60) {
-        return world.game.level_time > 15;
+    if (game.dots_eaten > 60) {
+        return game.frame_count > SECONDS_TO_FRAMES(15);
     }
 
     return false;
 }
 
-ghost_data_t sue_data() {
-    ghost_data_t data = {
-        .sprite_y = 112,
-        .start = {16, 14},
-        .start_dir = DIR_NORTH,
-        .start_state = STATE_IN_HOUSE,
-        .chase = sue_chase,
-        .leave = sue_leave,
-        .scatter = sue_scatter
-    };
-
-    return data;
+void init_base_ghost(Actor *g, int x, int y, [[maybe_unused]] GhostState state, Dir dir) {
+    g->x = x * TILE - HALF;
+    g->y = y * TILE;
+    g->state = state;
+    g->dir = dir;
+    g->is_player = false;
+    g->frame_count = 0;
+    g->frame_index = 0;
+    g->pixels_moved = 0;
+    g->bounce = 0;
+    g->speed_idx = 0;
+    // g->is_frightened = false;
+    g->reverse = false;
 }
 
-void init_ghost(entity_t *entity, ghost_data_t data) {
-    entity->tile.x = data.start.x;
-    entity->tile.y = data.start.y;
-    entity->pos.x = entity->tile.x * TILE;
-    entity->pos.y = entity->tile.y * TILE;
-    entity->pixels_moved = 0;
-
-    float bounce = 0;
-    if (data.start_dir == DIR_SOUTH) {
-        bounce = M_PI / 2;
-    }
-    entity->bounce = bounce;
-
-    entity->sprite[DIR_EAST] = (Vector2){456, data.sprite_y};
-    entity->sprite[DIR_WEST] = (Vector2){488, data.sprite_y};
-    entity->sprite[DIR_NORTH] = (Vector2){520,data.sprite_y};
-    entity->sprite[DIR_SOUTH] = (Vector2){552, data.sprite_y};
-
-    entity->dir = data.start_dir;
-    entity->next_dir = data.start_dir;
-
-    entity->sprite_type = SPRITE_ENTITY;
-    entity->frame_count = 0;
-    entity->frame_index = 0;
-    entity->state = data.start_state;
-    entity->pixels_moved_in_dir = 0;
-    entity->chase = data.chase;
-    entity->leave = data.leave;
-    entity->scatter = data.scatter;
+void init_blinky(Actor *g) {
+    init_base_ghost(g, 14, 11, SCATTER, RIGHT);
+    g->chase = blinky_chase;
+    g->leave = blinky_leave;
+    g->scatter = blinky_scatter;
 }
 
-static void update_ghost_frame(entity_t *g) {
-    const int frames_per_state = 15;
-    const int cycle_length = 2 * frames_per_state; // 30 frames for full cycle
-    const int frame_in_cycle = g->frame_count % cycle_length;
-
-    if (frame_in_cycle < frames_per_state) {
-        g->frame_index = 0; // First pose
-    } else {
-        g->frame_index = 1;
-    }
-    
-    g->frame_count++;
-    if (g->frame_count > cycle_length) g->frame_count = 0;
+void init_inky(Actor *g) {
+    //init_base_ghost(g, 12, 14, STATE_IN_HOUSE, DIR_UP);
+    init_base_ghost(g, 12, 11, SCATTER, LEFT);
+    g->chase = inky_chase;
+    g->leave = inky_leave;
+    g->scatter = inky_scatter;
 }
 
-//    int level = world.game.level;
-static float ghost_speed(entity_t *g) {
-    const int level = world.game.level;
-    // 96% of pacman's speed
-    static const float speed_table[] = {
-        84.48f,
-        92.928f,
-        92.928f,
-        92.928f,
-        101.376f   // used for level 5+
-    };
-    const size_t idx = (level < 1) ? 0 : (level > 4) ? 4 : (size_t)(level - 1);
-
-    float speed = speed_table[idx];
-    if (is_in_tunnel(g->tile)) speed *= 0.5f;
-    return speed / 60.0f; // convert to pixels per frame
+void init_pinky(Actor *g) {
+    //init_base_ghost(g, 14, 14, STATE_IN_HOUSE, DIR_DOWN);
+    init_base_ghost(g, 15, 11, SCATTER, LEFT);
+    g->chase = pinky_chase;
+    g->leave = pinky_leave;
+    g->scatter = pinky_scatter;
 }
 
-static dir_t opposite_dir(dir_t dir) {
-    switch (dir) {
-        case DIR_NORTH: return DIR_SOUTH;
-        case DIR_SOUTH: return DIR_NORTH;
-        case DIR_EAST: return DIR_WEST;
-        case DIR_WEST: return DIR_EAST;
-        default: return DIR_WEST;
-    }
+void init_sue(Actor *g) {
+    //init_base_ghost(g, 16, 14, STATE_IN_HOUSE, DIR_UP);
+    init_base_ghost(g, 16, 11, SCATTER, RIGHT);
+    g->chase = sue_chase;
+    g->leave = sue_leave;
+    g->scatter = sue_scatter;
 }
 
-static float dist_between(Vector2 a, Vector2 b) {
+static float distance_between(Vector2 a, Vector2 b) {
     return sqrtf((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
 }
 
-static bool is_valid_move(Vector2 tile, bool leaving_house) {
-    const int x = (int)tile.x, y = (int)tile.y;
+static Vector2 normalize_tunnel_tile(Vector2 tile) {
+    if (tile.x < 0) tile.x += GAME_WIDTH;
+    if (tile.x >= GAME_WIDTH) tile.x -= GAME_WIDTH;
+    return tile;
+}
 
-    if (x < 0 || x >= GAME_WIDTH || y < 0 || y >= GAME_HEIGHT) return false;
+static Dir opposite_dir(Dir current) {
+    if (current == DIR_NONE) return DIR_NONE;
+    return (Dir) ((current + 2) % 4);
+}
 
-    tile_t t = world.game.maze[y][x];
+static bool is_valid_ghost_tile(const Vector2 tile, const GhostState state) {
+    const Vector2 wrapped_tile = normalize_tunnel_tile(tile);
+    if (wrapped_tile.x < 0 || wrapped_tile.x >= GAME_WIDTH || wrapped_tile.y < 0 || wrapped_tile.y >= GAME_HEIGHT) {
+        return false;
+    }
+
+    const Tile t = game.maze[(int) wrapped_tile.y][(int) wrapped_tile.x];
+
+    if (state == CHASE || state == SCATTER) {
+        if (t == TILE_WALL || t == TILE_GHOST_WALL) return false;
+    }
+
     if (t == TILE_WALL) return false;
-    if (t == TILE_DOOR) return leaving_house;
+    if (t == TILE_DOOR) return state == LEAVING_HOUSE;
 
     return true;
 }
 
-static dir_t choose_ghost_dir(entity_t *g, Vector2 target) {
-    int valid_dirs = 0;
+static Dir choose_ghost_direction(Actor *g, const Vector2 target) {
+    if (g->reverse) {
+        g->reverse = false;
+        return opposite_dir(g->dir);
+    }
 
-    for (int i = 0; i < DIR_COUNT; i++) {
-        if (i == opposite_dir(g->dir)) continue;
-        Vector2 next_tile = get_next_tile(g, i);
-        if (is_valid_move(next_tile, g->state == STATE_LEAVING_HOUSE)) {
-            valid_dirs |= 1 << i;
+    int valid_dirs = 0;
+    const Vector2 tile = pos_to_tile(g->x, g->y);
+    static constexpr Dir dir_priority[4] = {UP, LEFT, DOWN, RIGHT};
+    for (int i = 0; i < 4; i++) {
+        const Dir dir = dir_priority[i];
+        if (dir == opposite_dir(g->dir)) continue;
+        const Vector2 next_tile = get_next_tile(tile, dir);
+        if (is_valid_ghost_tile(next_tile, g->state)) {
+            valid_dirs |= 1 << dir;
         }
     }
 
     if (valid_dirs == 0) return g->dir;
 
-    if (g->pixels_moved_in_dir < TILE) return g->dir;
-
-    dir_t best_dir = 0;
+    Dir best_dir = DIR_NONE;
     float min_distance = MAXFLOAT;
-
-    for (int i = 0; i < DIR_COUNT; i++) {
-        if (valid_dirs & 1 << i) {
-            const dir_t dir = (dir_t)i;
-            Vector2 next_tile = get_next_tile(g, i);
-            const float dist = dist_between(target, next_tile);
+    for (int i = 0; i < 4; i++) {
+        const Dir dir = dir_priority[i];
+        if (valid_dirs & 1 << dir) {
+            const Vector2 next_tile = normalize_tunnel_tile(get_next_tile(tile, dir));
+            const float dist = distance_between(target, next_tile);
             if (dist < min_distance) {
                 min_distance = dist;
                 best_dir = dir;
@@ -295,96 +256,46 @@ static dir_t choose_ghost_dir(entity_t *g, Vector2 target) {
     return best_dir;
 }
 
-static void update_ghost(entity_t *g) {
-    update_ghost_frame(g);
+static void update_ghost_frame(Actor *g) {
+    constexpr int frames_per_state = 15;
+    constexpr int cycle_length = 2 * frames_per_state; // 30 frames for full cycle
+    const int frame_in_cycle = g->frame_count % cycle_length;
 
-    if (g->state == STATE_IN_HOUSE) {
-        g->bounce += BOUNCE_SPEED;
-        g->pos.y = g->tile.y * TILE + sinf(g->bounce) * BOUNCE_AMPLITUDE;
-        g->dir = cosf(g->bounce) > 0 ? DIR_SOUTH : DIR_NORTH;
-
-        if (g->leave()) {
-            g->state = STATE_LEAVING_HOUSE;
-            g->target = (Vector2){14, 11};
-        }
-
-        return;
-    }
-
-    if (g->state == STATE_LEAVING_HOUSE) {
-        if (is_in_doorway((int)g->tile.x, (int)g->tile.y)) {
-            g->state = world.game.ghost_state;
-        }
-    }
-
-    if (g->pixels_moved >= TILE) {
-        set_next_tile(g, g->dir);
-        g->pixels_moved = 0;
-    }
-
-    Vector2 target;
-    if (g->state == STATE_LEAVING_HOUSE) {
-        target = (Vector2){13, 11};
-    } else if (g->state == STATE_CHASE) {
-        target = g->chase();
+    if (frame_in_cycle < frames_per_state) {
+        g->frame_index = 0; // First pose
     } else {
-        target = g->scatter();
+        g->frame_index = 1;
     }
 
-    g->target = target;
-
-    const dir_t current_dir = g->dir;
-
-    if (is_in_tunnel(g->tile)) {
-        if (g->tile.x < 0 && g->dir == DIR_WEST) {
-            g->tile.x = GAME_WIDTH - 1;
-        } else if (g->tile.x >= GAME_WIDTH-1 && g->dir == DIR_EAST) {
-            g->tile.x = 0;
-        }
-    } else {
-        g->dir = choose_ghost_dir(g, target);
-    }
-
-    float speed = ghost_speed(g);
-
-    if (current_dir == g->dir) {
-         g->pixels_moved_in_dir += speed;
-    } else {
-         g->pixels_moved_in_dir = speed;
-    }
-
-    move_entity(g, speed);
+    g->frame_count++;
+    if (g->frame_count > cycle_length) g->frame_count = 0;
 }
 
-static void update_fright(entity_t *g) {
-    if (g->state != STATE_FRIGHTENED) {
-        return;
-    }
 
-    const double dt = world.game.fright_time - GetTime();
-    if (dt < 0) {
-        g->state = STATE_CHASE;
-        g->sprite_type = SPRITE_ENTITY;
-        return;
-    }
+void update_ghosts(void) {
+    for (int i = 0; i < NUM_GHOSTS; i++) {
+        Actor *g = &game.ghosts[i];
+        update_ghost_frame(g);
 
-    if (dt > 2.0) {
-        g->sprite_type = SPRITE_BLUE;
-        return;
-    }
+        if (is_centered(g->x, g->y)) {
+            Vector2 target;
+            if (g->state == SCATTER) {
+                target = g->scatter();
+            } else {
+                target = g->chase();
+            }
 
-    const int n = (int)round(dt * 200) % 100;
-    if (n > 49) {
-        g->sprite_type = SPRITE_BLUE;
-    } else {
-        g->sprite_type = SPRITE_WHITE;
-    }
-}
+            const Dir dir = choose_ghost_direction(g, target);
+            if (dir != g->dir && g->pixels_moved > TILE) {
+                // printf("changing direction from %s to %s\n", dir_to_string(g->dir), dir_to_string(dir));
+                g->dir = dir;
+                g->pixels_moved = 0;
+            }
+        }
 
-void update_ghosts() {
-    for (int i = 0; i < GHOST_COUNT; i+=1) {
-        entity_t *g = &world.ghosts[i];
-        update_fright(g);
-        update_ghost(g);
+        update_actor(g, get_ghost_speed(g));
+        if (g->x < 0) g->x += GAME_WIDTH * TILE;
+        if (g->x >= GAME_WIDTH * TILE) g->x -= GAME_WIDTH * TILE;
+        g->pixels_moved++;
     }
 }

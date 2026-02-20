@@ -19,11 +19,11 @@ ifeq ($(UNAME_S), Darwin)
     # Mac OS
     # Note: If you installed via Homebrew on Apple Silicon, you might need to add:
     # -I/opt/homebrew/include -L/opt/homebrew/lib
-	CFLAGS = -Wall -Wextra -std=c17 $(shell pkg-config --cflags raylib)
+	CFLAGS = -Wall -Wextra -Wpedantic -std=c23 $(shell pkg-config --cflags raylib)
     LDFLAGS = $(shell pkg-config --libs raylib) -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 else
     # Linux
-	CFLAGS = -Wall -Wextra -std=c17
+	CFLAGS = -Wall -Wextra -Wpedantic -std=c23
     LDFLAGS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 endif
 

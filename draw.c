@@ -1,175 +1,178 @@
 //
-// Created by Steve Spencer on 12/4/25.
+// Created by Steve Spencer on 1/8/26.
 //
 
-#include <raylib.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <raylib.h>
 #include "game.h"
 #include "draw.h"
-#include "ghost.h"
+#include "maze.h"
 
 void draw_maze(void) {
-    // TODO need conversion between level and board
+    const int maze_num = get_maze_num(game.level);
 
     // --- draw maze ---
-    const float gap = TILE / 2.0f;
-    const float mx = ((float)GAME_WIDTH * TILE) + gap;
-    const float my = ((float) world.game.level * GAME_HEIGHT * TILE);
-    const float mw = GAME_WIDTH * TILE;
-    const float mh = GAME_HEIGHT * TILE;
+    constexpr float mw = GAME_WIDTH * TILE;
+    constexpr float mh = GAME_HEIGHT * TILE;
 
-    const Rectangle src = (Rectangle){mx, my, mw, mh};
+    const Rectangle src = (Rectangle){
+        (float) GAME_WIDTH * TILE + HALF, (float) maze_num * GAME_HEIGHT * TILE, mw, mh
+    };
     const Rectangle dst = (Rectangle){0, 0, mw, mh};
 
-    DrawTexturePro(world.texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+    DrawTexturePro(game.sprite_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
 
     // --- draw dots and power-ups ---
 
     // source location from original artwork texture of a
     // dot and power up so that the dots are the same
     // color as you see in that image
-    const float dot_x = 1, power_x = 1;
-    float dot_y, power_y;
+    static constexpr float dots[5] = {1, 36, 63, 94, 125}; // 125, 157
+    static constexpr float powers[5] = {2, 35, 65, 96, 127}; // 127, 158
 
-    switch (world.game.level) {
-        case 0:
-            dot_y = 1, power_y = 2;
-            break;
-        case 1:
-            dot_y = 36, power_y = 35;
-            break;
-        case 2:
-            dot_y = 63, power_y = 65;
-            break;
-        case 3:
-            dot_y = 94, power_y = 96;
-            break;
-        case 4:
-            dot_y = 125, power_y = 127;
-            break;
-        case 5:
-            dot_y = 157, power_y = 158;
-            break;
-        default:
-            printf("Invalid level: %d\n", world.game.level);
-            exit(1);
-    }
+    const Vector2 dot = (Vector2){1, dots[maze_num]};
+    const Vector2 power = (Vector2){1, powers[maze_num]};
 
-    const Rectangle dotSrc = (Rectangle){dot_x * TILE, dot_y * TILE, TILE, TILE};
-    const Rectangle powerSrc = (Rectangle){power_x * TILE, power_y * TILE, TILE, TILE};
+    const Rectangle dotSrc = (Rectangle){dot.x * TILE, dot.y * TILE, TILE, TILE};
+    const Rectangle powerSrc = (Rectangle){power.x * TILE, power.y * TILE, TILE, TILE};
 
-    for (int y = 0; y < GAME_HEIGHT; y+=1) {
-        for (int x = 0; x < GAME_WIDTH; x+=1) {
-            const tile_t tile = world.game.maze[y][x];
+    for (int y = 0; y < GAME_HEIGHT; y += 1) {
+        for (int x = 0; x < GAME_WIDTH; x += 1) {
+            const Tile tile = game.maze[y][x];
 
-            const Rectangle rec = (Rectangle){(float)x*TILE, (float)y*TILE, TILE, TILE};
+            const Rectangle rec = (Rectangle){(float) x * TILE, (float) y * TILE, TILE, TILE};
 
             if (tile == TILE_DOT) {
-                DrawTexturePro(world.texture, dotSrc, rec, (Vector2){0, 0}, 0, WHITE);
+                DrawTexturePro(game.sprite_texture, dotSrc, rec, (Vector2){0, 0}, 0, WHITE);
             } else if (tile == TILE_POWER) {
-                DrawTexturePro(world.texture, powerSrc, rec, (Vector2){0, 0}, 0, WHITE);
-            } else if (tile == TILE_TUNNEL) {
-                DrawRectangleV((Vector2){x*TILE, y*TILE}, (Vector2){TILE, TILE}, SKYBLUE);
+                DrawTexturePro(game.sprite_texture, powerSrc, rec, (Vector2){0, 0}, 0, WHITE);
             }
         }
     }
 }
 
-void draw_pacman(void) {
-    entity_t *p = &world.pacman;
-    Vector2 sprite = (Vector2){p->sprite[p->dir].x, p->sprite[p->dir].y};
+static void draw_sprite(const float x, const float y, const float sx, const float sy, const float frame_index) {
+    const Rectangle src = (Rectangle){sx + frame_index * SPRITE, sy, SPRITE, SPRITE};
+    Rectangle dst = (Rectangle){x, y, SPRITE, SPRITE};
+    DrawTexturePro(game.sprite_texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+    // Rectangle center = (Rectangle){x + TILE-HALF/2, y + TILE-HALF/2, HALF, HALF};
+    // DrawRectangleRec(center, GREEN);
+    // int tile_x = (int) floorf(x / TILE);
+    // int tile_y = (int) floorf(y / TILE);
+    // if (tile_x < 0) tile_x = 0;
+    // if (tile_y < 0) tile_y = 0;
+    // if (tile_x >= GAME_WIDTH) tile_x = GAME_WIDTH-1;
+    // if (tile_y >= GAME_HEIGHT) tile_y = GAME_HEIGHT-1;
+    // if (game.maze[tile_y][tile_x] == TILE_TUNNEL) {
+    //     Rectangle mazer = (Rectangle){x, y, SPRITE, SPRITE};
+    //     DrawRectangleRec(mazer, BLUE);
+    //
+    // }
+}
 
-    const Rectangle src = (Rectangle){sprite.x + (float)p->frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
-    //Rectangle dst = (Rectangle){p->pos.x - 4.0f, p->pos.y - 4.0f, SPRITE, SPRITE};
-    const Rectangle dst = (Rectangle){p->pos.x, p->pos.y, SPRITE, SPRITE};
-    DrawTexturePro(world.texture, src, dst, (Vector2){0, 0}, 0, WHITE);
+static Vector2 get_eye_sprite(Dir dir) {
+    static constexpr float eyes_x[4] = {616, 632, 600, 584}; // north, south, east, west
 
-    // Debug overlay to visualize alignment between intended tile center and actual position
-    if (world.game.debug) {
-        const Rectangle intended = (Rectangle){p->tile.x * TILE, p->tile.y * TILE, SPRITE, SPRITE};
-        const Rectangle actual   = (Rectangle){p->pos.x, p->pos.y, SPRITE, SPRITE};
-        DrawRectangleLinesEx(intended, 1, GREEN);
-        DrawRectangleLinesEx(actual, 1, RED);
+    return (Vector2){eyes_x[dir], 80};
+}
 
-        const float dx = p->pos.x - p->tile.x * TILE;
-        const float dy = p->pos.y - p->tile.y * TILE;
-        DrawText(TextFormat("dx=%.1f dy=%.1f", dx, dy), (int)p->pos.x, (int)(p->pos.y - 8), 8, YELLOW);
+static Vector2 get_frightened_sprite(Dir dir) {
+    // TODO change delta_time to use frame count
+    static constexpr float blues_x[4] = {584, 584, 584, 584}; // north, south, east, west
+    static constexpr float whites_x[4] = {616, 616, 616, 616}; // north, south, east, west
+
+    if (game.frightened_frames >= game.frightened_flashes * FRIGHTENED_FLASH_FRAMES) {
+        return (Vector2){blues_x[dir], 64};
+    }
+
+    const int n = (game.frightened_frames / FRIGHTENED_FLASH_FRAMES) + 1;
+    if (n % 2 == 0) {
+        return (Vector2){blues_x[dir], 64};
+    }
+
+    return (Vector2){whites_x[dir], 64};
+}
+
+static Vector2 get_ghost_sprite(int id, Dir dir) {
+    static constexpr float ghosts_y[4] = {64, 96, 80, 112}; // blinky, inky, pinky, sue
+    static constexpr float ghosts_x[4] = { 520, 456, 552, 488}; // UP, RIGHT, DOWN, LEFT
+
+    return (Vector2){ghosts_x[dir], ghosts_y[id]};
+}
+
+/*
+void draw_food() {
+    const Actor *a = &game.food;
+    DrawRectangleV((Vector2){(float) a->x, (float) a->y},
+                   (Vector2){SPRITE, SPRITE}, (Color){255, 255, 0, 82});
+    //DrawCircleV((Vector2){(float) a->x + TILE, (float) a->y + TILE}, TILE,
+    //            (Color){255, 0, 0, 51}); // drawn from center
+    DrawCircleV((Vector2){(float) a->x + TILE, (float) a->y + TILE}, 2,
+                (Color){255, 0, 0, 82}); // drawn from center
+}
+
+void draw_food_old() {
+    const Actor *f = &game.food;
+    static float sprites[12] = {0, 0, 0, 0, 0, 504, 520, 536, 552, 568, 584, 600};
+    // cherry, strawberry, orange, pretzel, apple, pear, banana
+    Vector2 sprite = (Vector2){sprites[f->name], 0};
+
+    Vector2 center = (Vector2){f->x, f->y};
+    draw_sprite(center, sprite, 0);
+}
+*/
+void draw_ghosts(void) {
+    for (int i = 0; i < NUM_GHOSTS; i++) {
+        Actor *g = &game.ghosts[i];
+        Vector2 sprite;
+
+        if (g->state == EATEN) {
+            sprite = get_eye_sprite(g->dir);
+        } else if (g->state == FRIGHTENED) {
+            // TODO change delta_time to frame count
+            sprite = get_frightened_sprite(g->dir);
+        } else {
+            sprite = get_ghost_sprite(i, g->dir);
+        }
+
+        draw_sprite((float)g->x, (float)g->y, sprite.x, sprite.y, g->frame_index);
     }
 }
 
-void draw_ghosts() {
-    const static Vector2 eyes[DIR_COUNT] = {
-        {616, 80},
-        {632, 80},
-        {584, 80},
-        {600, 80}
-    }, fright_blue[DIR_COUNT] = {
-        {584, 64},
-        {584, 64},
-        {584, 64},
-        {584, 64}
-    }, fright_white[DIR_COUNT] = {
-        {616, 64},
-        {616, 64},
-        {616, 64},
-        {616, 64}
-    };
+void draw_pacman(Actor *p) {
+    static constexpr float sprites[4] = {1024, 992, 1040, 1008}; // (y): up, right, down, left
+    draw_sprite((float) p->x, (float) p->y, 456, sprites[p->dir], p->frame_index);
+}
 
-    for (int i = 0; i < GHOST_COUNT; i+=1) {
-        entity_t *g = &world.ghosts[i];
-
-        Vector2 sprite;
-        float frame_index = g->frame_index;
-
-        if (g->sprite_type == SPRITE_EYES) {
-            sprite = eyes[g->dir];
-            frame_index = 0;
-        } else if (g->sprite_type == SPRITE_BLUE) {
-            sprite = fright_blue[g->dir];
-        } else if (g->sprite_type == SPRITE_WHITE) {
-            sprite = fright_white[g->dir];
-        }  else {
-            sprite = g->sprite[g->dir];
-        }
-
-        const Rectangle src = (Rectangle){sprite.x + frame_index * SPRITE, sprite.y, SPRITE, SPRITE};
-         Rectangle dst = (Rectangle){g->pos.x, g->pos.y, SPRITE, SPRITE};
-        if (is_in_house((int)g->tile.x, (int)g->tile.y)) {
-            dst.x -= (TILE/2.0f);
-        }
-
-        DrawTexturePro(world.texture, src, dst, (Vector2){0, 0}, 0, WHITE);
-        /*
-        if (world.game.debug) {
-            Color c;
-            if (i == GHOST_BLINKY) c = RED;
-            else if (i == GHOST_PINKY) c = MAGENTA;
-            else if (i == GHOST_INKY) c = SKYBLUE;
-            else c = ORANGE;
-
-            DrawRectangleLinesEx((Rectangle){g->target.x *TILE, g->target.y*TILE, SPRITE, SPRITE}, 2, c);
-        }
-        */
-    }
+void draw_ms_pacman(Actor *p) {
+    static constexpr float sprites[4] = {32, 0, 48, 16}; // (y): up, right, down, left
+    draw_sprite((float) p->x, (float) p->y, 456, sprites[p->dir], p->frame_index);
 }
 
 void draw_checkerboard(void) {
-    const Color c1 = (Color){255, 255, 255, 130};
-    const Color c2 = (Color){255, 255, 255, 90};
-    const Color c3 = (Color){255, 0, 0, 150};
+    constexpr Color c1 = (Color){255, 255, 255, 120};
+    constexpr Color c2 = (Color){255, 255, 255, 80};
     int i = 0;
-    for (int y = 0; y < GAME_HEIGHT; y+=1) {
-        for (int x = 0; x < GAME_WIDTH; x+=1) {
+    for (int y = 0; y < GAME_HEIGHT; y += 1) {
+        for (int x = 0; x < GAME_WIDTH; x += 1) {
+            const Rectangle rec = (Rectangle){(float) x * TILE, (float) y * TILE, TILE, TILE};
+            const Tile tile = game.maze[y][x];
+
             Color c = (i % 2 == 0) ? c1 : c2;
-            if (is_in_doorway(x, y)) {
-                c = c3;
-            }
-            DrawRectangleV((Vector2){x*TILE, y*TILE}, (Vector2){TILE, TILE}, c);
+            DrawRectangleRec(rec, c);
             i += 1;
+
+            if (tile == TILE_GHOST_WALL) {
+                DrawRectangleRec(rec, RED);
+            } else if (tile == TILE_TUNNEL) {
+                DrawRectangleRec(rec, PINK);
+            }
         }
         i += 1;
     }
+
 }
 
 void draw_text(const char *text, int x, int y, Color color) {
@@ -179,13 +182,13 @@ void draw_text(const char *text, int x, int y, Color color) {
         unsigned char c = text[i];
 
         if (c >= '0' && c <= '9') {
-            fx = (float)(c - '0');
+            fx = (float) (c - '0');
             fy = 2;
         } else if (c >= 'A' && c <= 'O') {
-            fx = (float)(c - 'A');
+            fx = (float) (c - 'A');
             fy = 0;
         } else if (c >= 'P' && c <= 'Z') {
-            fx = (float)(c - 'P');
+            fx = (float) (c - 'P');
             fy = 1;
         } else if (c == '!') {
             fx = 11;
@@ -204,10 +207,9 @@ void draw_text(const char *text, int x, int y, Color color) {
             continue;
         }
 
-
-        Rectangle src = { fx * TILE, fy * TILE, TILE, TILE };
-        Rectangle dst = { (float)(x + i) * TILE, (float)y * TILE, TILE, TILE };
-        DrawTexturePro(world.font, src, dst, (Vector2){0.0f, 0.0f}, 0.0f, color);
+        const Rectangle src = (Rectangle){fx * TILE, fy * TILE, TILE, TILE};
+        const Rectangle dst = (Rectangle){(float) (x + i) * TILE, (float) y * TILE, TILE, TILE};
+        DrawTexturePro(game.font_texture, src, dst, (Vector2){0.0f, 0.0f}, 0.0f, color);
     }
 }
 
@@ -219,8 +221,14 @@ void draw_score_labels(void) {
 
 void draw_scores(void) {
     static char scoreBuffer[32];
-    snprintf(scoreBuffer, sizeof(scoreBuffer), "%d", world.game.score);
+    snprintf(scoreBuffer, sizeof(scoreBuffer), "%d", game.score);
     draw_text(scoreBuffer, 3, 1, WHITE);
     draw_text("0", 13, 1, WHITE);
     draw_text("0", 24, 1, WHITE);
+}
+
+void draw_level(void) {
+    static char buf[32];
+    snprintf(buf, sizeof(buf), "LEVEL %d", game.level);
+    draw_text(buf, 1, GAME_HEIGHT, WHITE);
 }

@@ -1,14 +1,17 @@
 //
-// Created by Steve Spencer on 12/4/25.
+// Created by Steve Spencer on 1/8/26.
 //
-#include <raylib.h>
-#include <stdio.h>
 
+#include <raylib.h>
+#include "maze.h"
+
+#include <stdio.h>
 #include "game.h"
 
-#define DOT_MASK 103481868288
-#define POWER_MASK 4359202964317896252
-#define DOOR_MASK 16776960
+#define EMPTY_MASK 0UL
+#define DOT_MASK 103481868288UL
+#define POWER_MASK 4359202964317896252UL
+#define DOOR_MASK 16776960UL
 
 /**
  * @brief Computes a binary mask for a tile by analyzing its pixels within the image.
@@ -25,7 +28,7 @@
  * @return A binary mask that represents the non-black pixels within the specified tile area.
  */
 static unsigned long int compute_mask(const Image *img, const int startX, const int startY) {
-    unsigned long int result = 0L;
+    uint64_t result = 0UL;
 
     for (int y = startY; y < startY + TILE; y++) {
         for (int x = startX; x < startX + TILE; x++) {
@@ -42,6 +45,43 @@ static unsigned long int compute_mask(const Image *img, const int startX, const 
     return result;
 }
 
+int get_maze_top(const int level) {
+    if (get_maze_num(level) == 1) {
+        return 4;
+    }
+
+    return 1;
+}
+
+int get_maze_num(const int level) {
+    if (game.is_pacman) {
+        return 4;
+    }
+    if (level <= 2) return 0;            // Levels 1-2: Maze 1 (index 0)
+    if (level <= 5) return 1;            // Levels 3-5: Maze 2 (index 1)
+    if (level <= 9) return 2;            // Levels 6-9: Maze 3 (index 2)
+    if (level <= 13) return 3;           // Levels 10-13: Maze 4 (index 3)
+
+    // After level 13, alternate between mazes 3 and 4 every four levels.
+    // Level 14-17: Maze 3 (index 2)
+    // Level 18-21: Maze 4 (index 3)
+    // Level 22-25: Maze 3 (index 2)
+    // ...
+    int cycle = (level - 14) / 4;
+    return (cycle % 2 == 0) ? 2 : 3;
+}
+
+static void set_tunnels(int x1, int x2, int y) {
+    uint8_t (*maze)[GAME_WIDTH] = game.maze;
+    for (int x = 0; x <= x1; x++) {
+        maze[y][x] = TILE_TUNNEL;
+    }
+
+    for (int x = x2; x < GAME_WIDTH; x++) {
+        maze[y][x] = TILE_TUNNEL;
+    }
+}
+
 /**
  * @brief Populates the maze layout for the current game level by analyzing
  *        the world image to identify various tile types such as walls, dots,
@@ -52,74 +92,68 @@ static unsigned long int compute_mask(const Image *img, const int startX, const 
  * masks and tile dimensions. Additionally, it detects horizontal tunnels at
  * the edges of the maze and updates the maze accordingly.
  *
- * @param[in,out] game A pointer to the game structure containing the current
- *                     level and maze data that will be updated.
+ * @param[in] level The level to render.  Maze and level are not one-to-one.
  */
-void map_maze(game_t *game) {
-    const int offset = game->level * GAME_HEIGHT * TILE;
+void init_maze(const int level) {
+    const int maze_num = get_maze_num(level);
+    const Image image = LoadImageFromTexture(game.sprite_texture);
+    const int offset = maze_num * GAME_HEIGHT * TILE;
+
+    game.dots_eaten = 0;
+    game.dots_remaining = 0;
+
+    uint8_t (*maze)[GAME_WIDTH] = game.maze;
 
     // find walls/dots/power ups
     for (int y = 0; y < GAME_HEIGHT; y++) {
         for (int x = 0; x < GAME_WIDTH; x++) {
-            const unsigned long int mask = compute_mask(&world.image, x * TILE, y * TILE + offset);
+            const unsigned long int mask = compute_mask(&image, x * TILE, y * TILE + offset);
 
             switch (mask) {
-                case 0: game->maze[y][x] = TILE_EMPTY;
-                    break;
-                case DOT_MASK: game->maze[y][x] = TILE_DOT;
-                    break;
-                case POWER_MASK: game->maze[y][x] = TILE_POWER;
-                    break;
-                case DOOR_MASK: game->maze[y][x] = TILE_DOOR;
-                    break;
-                default: game->maze[y][x] = TILE_WALL;
+                case EMPTY_MASK: maze[y][x] = TILE_EMPTY; break;
+                case DOT_MASK: maze[y][x] = TILE_DOT; game.dots_remaining++; break;
+                case POWER_MASK: maze[y][x] = TILE_POWER; break;
+                case DOOR_MASK: maze[y][x] = TILE_DOOR; break;
+                default: maze[y][x] = TILE_WALL; break;
             }
         }
     }
 
-    // find tunnels
-    for (int y = 0; y < GAME_HEIGHT; y++) {
-        if ((game->maze[y][0] == TILE_EMPTY) &&
-            (game->maze[y][1] == TILE_EMPTY || game->maze[y][1] == TILE_DOT) &&
-            (game->maze[y][2] == TILE_EMPTY || game->maze[y][2] == TILE_DOT)) {
-            game->maze[y][0] = TILE_TUNNEL;
-        }
-
-        if ((game->maze[y][GAME_WIDTH - 3] == TILE_EMPTY || game->maze[y][GAME_WIDTH - 3] == TILE_DOT) &&
-            (game->maze[y][GAME_WIDTH - 2] == TILE_EMPTY || game->maze[y][GAME_WIDTH - 2] == TILE_DOT) &&
-            game->maze[y][GAME_WIDTH - 1] == TILE_EMPTY) {
-            game->maze[y][GAME_WIDTH - 1] = TILE_TUNNEL;
-        }
+    if (maze_num == 0) {
+        maze[10][9] = TILE_GHOST_WALL;
+        maze[10][18] = TILE_GHOST_WALL;
+        maze[22][9] = TILE_GHOST_WALL;
+        maze[22][18] = TILE_GHOST_WALL;
+        set_tunnels(1, 26, 8);
+        set_tunnels(1, 26, 17);
+    } else if (maze_num == 1) {
+        maze[10][9] = TILE_GHOST_WALL;
+        maze[10][18] = TILE_GHOST_WALL;
+        maze[22][11] = TILE_GHOST_WALL;
+        maze[22][16] = TILE_GHOST_WALL;
+        set_tunnels(4, 23, 1);
+        set_tunnels(1, 26, 23);
+    } else if (maze_num == 2) {
+        maze[10][9] = TILE_GHOST_WALL;
+        maze[10][18] = TILE_GHOST_WALL;
+        maze[22][9] = TILE_GHOST_WALL;
+        maze[22][18] = TILE_GHOST_WALL;
+        set_tunnels(0, 27, 9);
+    } else if (maze_num == 3) {
+        maze[10][12] = TILE_GHOST_WALL;
+        maze[10][15] = TILE_GHOST_WALL;
+        maze[19][12] = TILE_GHOST_WALL;
+        maze[19][15] = TILE_GHOST_WALL;
+        set_tunnels(1, 26, 13);
+        set_tunnels(1, 26, 16);
+    } else {
+        // pacman
+        maze[10][12] = TILE_GHOST_WALL;
+        maze[10][15] = TILE_GHOST_WALL;
+        maze[22][12] = TILE_GHOST_WALL;
+        maze[22][15] = TILE_GHOST_WALL;
+        set_tunnels(4, 23, 14);
     }
-}
 
-void debug_maze(const game_t *game) {
-    for (int y = 0; y < GAME_HEIGHT; y++) {
-        for (int x = 0; x < GAME_WIDTH; x++) {
-            switch (game->maze[y][x]) {
-                case TILE_WALL:
-                    printf("###");
-                    break;
-                case TILE_DOT:
-                    printf(" + ");
-                    break;
-                case TILE_POWER:
-                    printf(" @ ");
-                    break;
-                case TILE_EMPTY:
-                    printf("   ");
-                    break;
-                case TILE_TUNNEL:
-                    printf("<|>");
-                    break;
-                case TILE_DOOR:
-                    printf("---");
-                    break;
-                default:
-                    printf("???");
-                    break;
-            }
-        }
-        printf("\n");
-    }
+    UnloadImage(image);
 }
