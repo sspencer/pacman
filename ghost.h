@@ -10,7 +10,7 @@
 void init_blinky(Actor *);
 void init_inky(Actor *);
 void init_pinky(Actor *);
-void init_sue(Actor *);
+void init_clyde(Actor *);
 void update_ghosts(void);
 
 #endif // PACMAN_GHOST_H

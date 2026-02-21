@@ -32,7 +32,7 @@ int main(void) {
     init_blinky(&game.ghosts[BLINKY]);
     init_inky(&game.ghosts[INKY]);
     init_pinky(&game.ghosts[PINKY]);
-    init_sue(&game.ghosts[SUE]);
+    init_clyde(&game.ghosts[CLYDE]);
     init_maze(game.level);
     // need a init_level func
 
