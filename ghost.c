@@ -27,8 +27,8 @@ static Vector2 pixel_to_tile(const Vector2 pixel) {
     };
 }
 
-static Vector2 tile_to_pixel(const Vector2 tile) {
-    return (Vector2){tile.x * TILE, tile.y * TILE};
+static Vector2 tile_to_pixel(const int x, const int y) {
+    return (Vector2){(float)x * TILE, (float)y * TILE};
 }
 
 Vector2 get_next_tile(Vector2 tile, const Dir dir) {
@@ -50,24 +50,45 @@ Vector2 get_next_tile(Vector2 tile, const Dir dir) {
 // ------------------- SCATTER -------------------
 Vector2 blinky_scatter() {
     // pacman
-    return tile_to_pixel((Vector2){GAME_WIDTH-3, -3});
+    return tile_to_pixel(GAME_WIDTH-3, -3);
 }
 
 Vector2 inky_scatter() {
     // pacman
-    return tile_to_pixel((Vector2){GAME_WIDTH-1, GAME_HEIGHT});
+    return tile_to_pixel(GAME_WIDTH-1, GAME_HEIGHT);
 }
 
 Vector2 pinky_scatter() {
     // pacman
-    return tile_to_pixel((Vector2){2, -3});
+    return tile_to_pixel(2, -3);
 }
 
 Vector2 clyde_scatter() {
     //  pacman
-    return tile_to_pixel((Vector2){0, GAME_HEIGHT});
+    return tile_to_pixel(0, GAME_HEIGHT);
 }
 
+
+// ------------------- START -------------------
+Vector2 blinky_start() {
+    // pacman
+    return tile_to_pixel(14, 14);
+}
+
+Vector2 inky_start() {
+    // pacman
+    return tile_to_pixel(12, 14);
+}
+
+Vector2 pinky_start() {
+    // pacman
+    return tile_to_pixel(14, 14);
+}
+
+Vector2 clyde_start() {
+    //  pacman
+    return tile_to_pixel(16, 14);
+}
 
 // ------------------- CHASE -------------------
 Vector2 blinky_chase() {
@@ -95,10 +116,7 @@ Vector2 inky_chase() {
     const Vector2 blinky = pos_to_tile(game.ghosts[BLINKY].x, game.ghosts[BLINKY].y); // YES, BLINKY
     const float dx = pivot.x - blinky.x;
     const float dy = pivot.y - blinky.y;
-    return tile_to_pixel((Vector2){
-        blinky.x + 2 * dx,
-        blinky.y + 2 * dy
-    });
+    return tile_to_pixel(blinky.x + 2 * dx, blinky.y + 2 * dy);
 }
 
 Vector2 pinky_chase() {
@@ -118,7 +136,7 @@ Vector2 pinky_chase() {
     }
 
     const Vector2 player = pos_to_tile(game.player.x, game.player.y);
-    return tile_to_pixel((Vector2){player.x + vx, player.y + vy});
+    return tile_to_pixel(player.x + vx, player.y + vy);
 }
 
 Vector2 clyde_chase() {
@@ -131,7 +149,7 @@ Vector2 clyde_chase() {
     const float dy = pv.y - sv.y;
     const float dist = sqrtf(dx * dx + dy * dy);
     if (dist >= 8.0f) {
-        return tile_to_pixel(pv);
+        return tile_to_pixel(pv.x, pv.y);
     }
 
     return clyde_scatter();
@@ -332,17 +350,13 @@ static void update_ghost(Actor *g) {
         if (g->x < HOUSE_X) {
             g->dir = RIGHT;
             update_actor(g, speed);
-
-            //g->x += 1;
         } else if (g->x > HOUSE_X) {
             g->dir = LEFT;
             update_actor(g, speed);
-            //g->x -= 1;
         } else {
             if (g->y > HOUSE_Y) {
                 g->dir = UP;
                 update_actor(g, speed);
-                //g->y -= 1;
             } else {
                 g->state = game.ghost_state;
                 g->target = g->state == SCATTER ? g->scatter() : g->chase();

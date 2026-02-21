@@ -161,6 +161,7 @@ typedef struct
     Vector2 (*chase)(void);   // CHASE target (pixel coordinates)
     bool (*leave)(void);      // time to LEAVE the house
     Vector2 (*scatter)(void); // SCATTER target (pixel coordinates)
+    Vector2 (*start)(void);   // START target (after ghost is eaten)
 } Actor;
 
 typedef struct
