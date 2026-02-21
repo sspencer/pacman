@@ -9,6 +9,7 @@
 #include "game.h"
 #include "draw.h"
 #include "maze.h"
+#include "player.h"
 
 void draw_maze(void) {
     const int maze_num = get_maze_num(game.level);
@@ -234,13 +235,24 @@ void draw_score_labels(void) {
 void draw_scores(void) {
     static char scoreBuffer[32];
     snprintf(scoreBuffer, sizeof(scoreBuffer), "%d", game.score);
-    draw_text(scoreBuffer, 3, 1, WHITE);
+    draw_text(scoreBuffer, 4, 1, WHITE);
     draw_text("0", 13, 1, WHITE);
     // draw_text("0", 24, 1, WHITE);
 }
 
-void draw_level(void) {
-    static char buf[32];
-    snprintf(buf, sizeof(buf), "LEVEL %d", game.level);
-    draw_text(buf, 1, GAME_HEIGHT, WHITE);
+void draw_lives(void) {
+    static constexpr float pc[4] = {1024, 992, 1040, 1008}; // (y): up, right, down, left
+    static constexpr float ms[4] = {32, 0, 48, 16}; // (y): up, right, down, left
+
+    int lives = 2;
+    float x = 2 * TILE;
+    float y = GAME_HEIGHT * TILE - HALF + 1;
+    for (int i = 0; i < lives; i++) {
+        if (game.is_pacman) {
+            draw_sprite(x, y, 456, pc[RIGHT], 1);
+        } else {
+            draw_sprite(x, y, 456, ms[RIGHT], 1);
+        }
+        x += SPRITE;
+    }
 }

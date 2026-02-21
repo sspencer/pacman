@@ -23,5 +23,5 @@ void draw_scores(void);
 
 void draw_score_labels(void);
 
-void draw_level(void);
+void draw_lives(void);
 #endif // PACMAN_DRAW_H

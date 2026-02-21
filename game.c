@@ -373,7 +373,7 @@ void draw_game(void) {
 
     text_camera.offset.y = (GAME_HEIGHT - HALF) * zoom;
     BeginMode2D(text_camera);
-    draw_level();
+    draw_lives();
     EndMode2D();
 
     //------------ DRAW MAZE ------------
