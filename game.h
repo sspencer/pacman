@@ -174,6 +174,7 @@ typedef struct
     Shader chroma_shader;
     float screen_zoom;
     int score;
+    int high_score;
     int dots_eaten;
     int dots_remaining;
     int ghosts_eaten;

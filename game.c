@@ -287,6 +287,8 @@ static void process_events(void) {
                 break;
         }
     }
+
+    if (game.score > game.high_score) game.high_score = game.score;
 }
 
 void update_game(void) {

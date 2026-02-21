@@ -234,10 +234,10 @@ void draw_score_labels() {
 
 void draw_scores() {
     static char scoreBuffer[32];
-    snprintf(scoreBuffer, sizeof(scoreBuffer), "%d", game.score);
-    draw_text(scoreBuffer, 4, 1, WHITE);
-    draw_text("0", 13, 1, WHITE);
-    // draw_text("0", 24, 1, WHITE);
+    snprintf(scoreBuffer, sizeof(scoreBuffer), "%7d", game.score);
+    draw_text(scoreBuffer, 0, 1, WHITE);
+    snprintf(scoreBuffer, sizeof(scoreBuffer), "%7d", game.high_score);
+    draw_text(scoreBuffer, 10, 1, WHITE);
 }
 
 void draw_lives() {
