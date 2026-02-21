@@ -173,7 +173,7 @@ void init_base_ghost(Actor *g, int id, int x, int y, [[maybe_unused]] GhostState
 }
 
 void init_blinky(Actor *g) {
-    init_base_ghost(g, BLINKY, 14, 11, SCATTER, RIGHT);
+    init_base_ghost(g, BLINKY, 14, 11, SCATTER, LEFT);
     g->name = "blinky";
     g->chase = blinky_chase;
     g->leave = blinky_leave;

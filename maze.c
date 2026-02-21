@@ -140,10 +140,18 @@ void init_maze(const int level) {
 
 bool is_ghost_wall(int x, int y) {
     int maze_num = get_maze_num(game.level);
+    if (maze_num < 4) {
+        return false;
+    }
+
+    return (y == 10 || y == 22) && (x == 12 || x == 15); // pacman maze only
+
+    /*
     switch (maze_num) {
         case 0: return (y == 10 || y == 22) && (x == 9 || x == 18);
         case 1: return (y == 10 || y == 22) && (x == 11 || x == 16);
         case 2: return (y == 10 || y == 22) && (x == 9 || x == 18);
         default: return (y == 10 || y == 22) && (x == 12 || x == 15); // maze 3 or pacman
     }
+    */
 }
