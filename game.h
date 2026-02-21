@@ -19,8 +19,6 @@
 #define TILE 8
 #define HALF 4
 #define NUM_GHOSTS 4
-#define BOUNCE_SPEED 0.1f
-#define BOUNCE_AMPLITUDE 4.0f
 #define HOUSE_X 108
 #define HOUSE_Y 88
 
@@ -141,7 +139,7 @@ typedef struct
     int id;
     const char *name;
     int x, y;               // pixel location (not tile loc)
-    int start_y;            // anchor for in-house bounce motion
+
 
     Dir dir;
     Dir req_dir; // Player: input dir; Ghost: unused
@@ -158,7 +156,6 @@ typedef struct
     bool is_player;
     GhostState state;
     bool reverse; // ghosts reverse directions after CHASE / SCATTER state changes
-    float bounce; // ghost (in house) bounce distance
 
     // Ghost Behavior
     Vector2 (*chase)(void);   // CHASE target (pixel coordinates)

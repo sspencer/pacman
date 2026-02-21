@@ -361,6 +361,13 @@ void draw_game(void) {
         .zoom = zoom
     };
 
+    const Camera2D full_camera = {
+        .offset = {0, 0 },
+        .target = {HALF, HALF},
+        .rotation = 0.0f,
+        .zoom = zoom
+    };
+
     //------------ DRAW TEXT ------------
     BeginMode2D(text_camera);
     draw_score_labels();
@@ -399,5 +406,9 @@ void draw_game(void) {
     // game.paused = true;
     //draw_food();
     EndShaderMode();
+    EndMode2D();
+
+    BeginMode2D(full_camera);
+    draw_targets();
     EndMode2D();
 }

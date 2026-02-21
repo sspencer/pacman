@@ -11,7 +11,7 @@
 #include "maze.h"
 #include "player.h"
 
-void draw_maze(void) {
+void draw_maze() {
     const int maze_num = get_maze_num(game.level);
 
     // --- draw maze ---
@@ -132,7 +132,7 @@ void draw_ghost_score(int x, int y, int score) {
     draw_sprite((float)x, (float)y, score_x[score % 4], score_y, 0);
 }
 
-void draw_ghosts(void) {
+void draw_ghosts() {
     for (int i = 0; i < NUM_GHOSTS; i++) {
         Actor *g = &game.ghosts[i];
         Vector2 sprite;
@@ -164,7 +164,7 @@ void draw_ms_pacman(Actor *p) {
     draw_sprite((float) p->x, (float) p->y, 456, sprites[p->dir], p->frame_index);
 }
 
-void draw_checkerboard(void) {
+void draw_checkerboard() {
     constexpr Color c1 = (Color){255, 255, 255, 120};
     constexpr Color c2 = (Color){255, 255, 255, 80};
     int i = 0;
@@ -226,13 +226,13 @@ void draw_text(const char *text, int x, int y, Color color) {
     }
 }
 
-void draw_score_labels(void) {
+void draw_score_labels() {
     draw_text("1UP", 3, 0, WHITE);
     draw_text("HIGH SCORE", 9, 0, WHITE);
     // draw_text("2UP", 22, 0, WHITE);
 }
 
-void draw_scores(void) {
+void draw_scores() {
     static char scoreBuffer[32];
     snprintf(scoreBuffer, sizeof(scoreBuffer), "%d", game.score);
     draw_text(scoreBuffer, 4, 1, WHITE);
@@ -240,7 +240,7 @@ void draw_scores(void) {
     // draw_text("0", 24, 1, WHITE);
 }
 
-void draw_lives(void) {
+void draw_lives() {
     static constexpr float pc[4] = {1024, 992, 1040, 1008}; // (y): up, right, down, left
     static constexpr float ms[4] = {32, 0, 48, 16}; // (y): up, right, down, left
 
@@ -255,4 +255,8 @@ void draw_lives(void) {
         }
         x += SPRITE;
     }
+}
+
+void draw_targets() {
+    DrawRectangle(HALF, HALF, SCREEN_WIDTH * TILE, SCREEN_HEIGHT * TILE, (Color){255, 255, 0, 82});
 }

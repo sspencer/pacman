@@ -86,6 +86,8 @@ Vector2 inky_chase(void) {
 }
 
 bool inky_leave(void) {
+    //return game.level_frame_count > SECONDS_TO_FRAMES(2);
+
     if (game.dots_eaten > 30) {
         return game.level_frame_count > SECONDS_TO_FRAMES(7);
     }
@@ -94,7 +96,7 @@ bool inky_leave(void) {
 }
 
 Vector2 inky_scatter(void) {
-    return tile_to_pixel((Vector2){1, 29});
+    return tile_to_pixel((Vector2){26, 29});
 }
 
 Vector2 pinky_chase(void) {
@@ -126,7 +128,7 @@ Vector2 pinky_scatter(void) {
 }
 
 Vector2 sue_scatter(void) {
-    return tile_to_pixel((Vector2){26, 29});
+    return tile_to_pixel((Vector2){1, 29});
 }
 
 Vector2 sue_chase(void) {
@@ -146,6 +148,8 @@ Vector2 sue_chase(void) {
 }
 
 bool sue_leave(void) {
+    //return game.level_frame_count > SECONDS_TO_FRAMES(3);
+
     if (game.dots_eaten > 60) {
         return game.level_frame_count > SECONDS_TO_FRAMES(15);
     }
@@ -154,11 +158,10 @@ bool sue_leave(void) {
 }
 
 void init_base_ghost(Actor *g, int id, int x, int y, [[maybe_unused]] GhostState state, Dir dir) {
-    static constexpr float PI_F = 3.14159265358979323846f;
+
     g->id = id;
     g->x = x * TILE - HALF;
     g->y = y * TILE;
-    g->start_y = g->y;
     g->state = state;
     g->dir = dir;
     g->is_player = false;
@@ -166,7 +169,7 @@ void init_base_ghost(Actor *g, int id, int x, int y, [[maybe_unused]] GhostState
     g->frame_index = 0;
     g->pixels_moved = 0;
     // Phase controls initial bounce direction: UP starts upward, DOWN starts downward.
-    g->bounce = (dir == UP) ? PI_F : 0.0f;
+
     g->speed_idx = 0;
     // g->is_frightened = false;
     g->reverse = false;
@@ -310,28 +313,40 @@ static void update_ghost(Actor *g) {
     update_ghost_frame(g);
 
     if (g->state == IN_HOUSE) {
-        g->bounce += BOUNCE_SPEED;
-        g->y = g->start_y + (int) lroundf(sinf(g->bounce) * BOUNCE_AMPLITUDE);
-        g->dir = cosf(g->bounce) > 0 ? DOWN : UP;
-
         if (g->leave()) {
             g->state = LEAVING_HOUSE;
+        } else {
+            int y = g->y;
+            update_actor(g, game.level_spec.ghost_tunnel_speed);//get_ghost_speed(g));
+            bool moved = y != g->y;
+            if (moved && (g->y == (14 * TILE + HALF) || g->y == (14 * TILE - HALF))) {
+                g->dir = opposite_dir[g->dir];
+            }
         }
 
         return;
     }
 
     if (g->state == LEAVING_HOUSE) {
+        uint32_t speed = game.level_spec.ghost_tunnel_speed;
         if (g->x < HOUSE_X) {
-            g->x += 1;
+            g->dir = RIGHT;
+            update_actor(g, speed);
+
+            //g->x += 1;
         } else if (g->x > HOUSE_X) {
-            g->x -= 1;
+            g->dir = LEFT;
+            update_actor(g, speed);
+            //g->x -= 1;
         } else {
             if (g->y > HOUSE_Y) {
-                g->y -= 1;
+                g->dir = UP;
+                update_actor(g, speed);
+                //g->y -= 1;
             } else {
                 g->state = game.ghost_state;
-                g->dir = choose_random_direction(RIGHT, RIGHT_MASK | LEFT_MASK);
+                const Vector2 target = g->state == SCATTER ? g->scatter() : g->chase();
+                g->dir = choose_ghost_direction(g, target);
             }
         }
 
