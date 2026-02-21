@@ -62,7 +62,7 @@ typedef enum
     BLINKY,
     INKY,
     PINKY,
-    SUE
+    CLYDE
 } GhostId;
 
 typedef enum
@@ -139,7 +139,7 @@ typedef struct
     int id;
     const char *name;
     int x, y;               // pixel location (not tile loc)
-
+    Vector2 target;
 
     Dir dir;
     Dir req_dir; // Player: input dir; Ghost: unused
@@ -191,7 +191,8 @@ typedef struct
     bool is_fright_mode; // flash cycle 28 frames (14 per color)
     bool is_pacman; // pacman game vs. ms. pacman
     bool is_paused;
-    bool is_xray;
+    bool draw_xrays;
+    bool draw_targets;
     EventStack event_stack;
 } Game;
 

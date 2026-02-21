@@ -9,7 +9,7 @@
 #include "game.h"
 #include "draw.h"
 #include "maze.h"
-#include "player.h"
+
 
 void draw_maze() {
     const int maze_num = get_maze_num(game.level);
@@ -97,7 +97,7 @@ static Vector2 get_frightened_sprite(Dir dir) {
 }
 
 static Vector2 get_ghost_sprite(int id, Dir dir) {
-    static constexpr float ghosts_y[4] = {64, 96, 80, 112}; // blinky, inky, pinky, sue
+    static constexpr float ghosts_y[4] = {64, 96, 80, 112}; // blinky, inky, pinky, cylde
     static constexpr float ghosts_x[4] = { 520, 456, 552, 488}; // UP, RIGHT, DOWN, LEFT
 
     return (Vector2){ghosts_x[dir], ghosts_y[id]};
@@ -258,5 +258,15 @@ void draw_lives() {
 }
 
 void draw_targets() {
-    DrawRectangle(HALF, HALF, SCREEN_WIDTH * TILE, SCREEN_HEIGHT * TILE, (Color){255, 255, 0, 82});
+    for (int i = 0; i < NUM_GHOSTS; i++) {
+        Actor *g = &game.ghosts[i];
+        Color c;
+        if (g->id == BLINKY) c = RED;
+        else if (g->id == PINKY) c = PINK;
+        else if (g->id == INKY) c = SKYBLUE;
+        else c = ORANGE;
+
+        Rectangle rec = (Rectangle){g->target.x + HALF, g->target.y + 3 * TILE + HALF, TILE, TILE};
+        DrawRectangleRec(rec, ColorAlpha(c, 0.6));
+    }
 }

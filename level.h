@@ -161,7 +161,7 @@ static constexpr GhostModePhaseTable ghost_mode_phase_table[] = {
         .level_min = 1,
         .level_max = 1,
         .phases = {
-            [0] = {.state = SCATTER, .duration_frames = SECONDS_TO_FRAMES(7)},
+            [0] = {.state = SCATTER, .duration_frames = SECONDS_TO_FRAMES(700)},
             [1] = {.state = CHASE, .duration_frames = SECONDS_TO_FRAMES(20)},
             [2] = {.state = SCATTER, .duration_frames = SECONDS_TO_FRAMES(7)},
             [3] = {.state = CHASE, .duration_frames = SECONDS_TO_FRAMES(20)},

@@ -47,10 +47,10 @@ static unsigned long int compute_mask(const Image *img, const int startX, const 
 
 int get_maze_top(const int level) {
     if (get_maze_num(level) == 1) {
-        return 4;
+        return 4 * TILE;
     }
 
-    return 1;
+    return 1 * TILE;
 }
 
 int get_maze_num(const int level) {

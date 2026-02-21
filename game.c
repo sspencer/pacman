@@ -13,11 +13,12 @@
 #include "prng.h"
 
 void init_game(void) {
-    game.is_pacman = false; // false is ms_pacman
+    game.is_pacman = true; // false is ms_pacman
     game.score = 0;
-    game.is_xray = false;
+    game.draw_xrays = false;
     game.font_texture = LoadTexture("assets/text.png");
     game.sprite_texture = LoadTexture("assets/game.png");
+    game.draw_targets = false;
 }
 
 void init_level(int level) {
@@ -290,7 +291,8 @@ static void process_events(void) {
 
 void update_game(void) {
     if (IsKeyPressed(KEY_P) || IsKeyPressed(KEY_SPACE)) game.is_paused = !game.is_paused;
-    if (IsKeyPressed(KEY_X)) game.is_xray = !game.is_xray;
+    if (IsKeyPressed(KEY_X)) game.draw_xrays = !game.draw_xrays;
+    if (IsKeyPressed(KEY_T)) game.draw_targets = !game.draw_targets;
     if (IsKeyPressed(KEY_N)) {
         game.level++;
         init_maze(game.level);
@@ -300,6 +302,22 @@ void update_game(void) {
         game.level = 1;
         init_maze(game.level);
     }
+    if (IsKeyPressed(KEY_C)) {
+        game.ghost_state = CHASE;
+        for (int i = 0; i < NUM_GHOSTS; i++) {
+            if (game.ghosts[i].state == SCATTER || game.ghosts[i].state == CHASE) game.ghosts[i].state = CHASE;
+        }
+        printf("Changing to CHASE MODE\n");
+    }
+
+    if (IsKeyPressed(KEY_S)) {
+        game.ghost_state = SCATTER;
+        for (int i = 0; i < NUM_GHOSTS; i++) {
+            if (game.ghosts[i].state == SCATTER || game.ghosts[i].state == CHASE) game.ghosts[i].state = SCATTER;
+        }
+        printf("Changing to SCATTER MODE\n");
+    }
+
 
     if (game.is_paused) return;
 
@@ -386,7 +404,7 @@ void draw_game(void) {
     //------------ DRAW MAZE ------------
     BeginMode2D(maze_camera);
     draw_maze();
-    if (game.is_xray) draw_checkerboard();
+    if (game.draw_xrays) draw_checkerboard();
     EndMode2D();
 
     //------------ DRAW SPRITES ------------
@@ -409,6 +427,6 @@ void draw_game(void) {
     EndMode2D();
 
     BeginMode2D(full_camera);
-    draw_targets();
+    if (game.draw_targets) draw_targets();
     EndMode2D();
 }
