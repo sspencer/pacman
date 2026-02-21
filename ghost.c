@@ -136,7 +136,7 @@ Vector2 pinky_chase() {
     }
 
     const Vector2 player = pos_to_tile(game.player.x, game.player.y);
-    return tile_to_pixel(player.x + vx, player.y + vy);
+    return tile_to_pixel((int)player.x + vx, (int)player.y + vy);
 }
 
 Vector2 clyde_chase() {
@@ -162,17 +162,30 @@ bool blinky_leave() {
 }
 
 bool inky_leave() {
-    // TODO fix INKY leave timing
-    return game.dots_eaten > 30 || game.level_frame_count > SECONDS_TO_FRAMES(7);
+    // TODO revisit leave timing, it's complicated
+    if (game.level == 1) {
+        return game.dots_eaten > 30 || game.level_frame_count > SECONDS_TO_FRAMES(7);
+    }
+
+    return true;
 }
 
 bool pinky_leave() {
-    return game.level_frame_count > SECONDS_TO_FRAMES(1);
+    return true;
 }
 
 bool clyde_leave() {
     // TODO fix CLYDE leave timing
-    return game.dots_eaten > 60 || game.level_frame_count > SECONDS_TO_FRAMES(15);
+    if (game.level == 1) {
+        // (officially, Inky leaves at 30 and only then Clyde waits for 60 dots to be eaten)
+        return game.dots_eaten > 90 || game.level_frame_count > SECONDS_TO_FRAMES(15);
+    }
+
+    if (game.level == 2) {
+        return game.dots_eaten > 50 || game.level_frame_count > SECONDS_TO_FRAMES(10);
+    }
+
+    return true;
 }
 
 void init_base_ghost(Actor *g, int id, int x, int y, [[maybe_unused]] GhostState state, Dir dir) {
@@ -200,6 +213,7 @@ void init_blinky(Actor *g) {
     g->chase = blinky_chase;
     g->leave = blinky_leave;
     g->scatter = blinky_scatter;
+    g->start = blinky_start;
 }
 
 void init_inky(Actor *g) {
@@ -209,6 +223,7 @@ void init_inky(Actor *g) {
     g->chase = inky_chase;
     g->leave = inky_leave;
     g->scatter = inky_scatter;
+    g->start = inky_start;
 }
 
 void init_pinky(Actor *g) {
@@ -218,6 +233,7 @@ void init_pinky(Actor *g) {
     g->chase = pinky_chase;
     g->leave = pinky_leave;
     g->scatter = pinky_scatter;
+    g->start = pinky_start;
 }
 
 void init_clyde(Actor *g) {
@@ -227,6 +243,7 @@ void init_clyde(Actor *g) {
     g->chase = clyde_chase;
     g->leave = clyde_leave;
     g->scatter = clyde_scatter;
+    g->start = clyde_start;
 }
 
 static float distance_between(Vector2 a, Vector2 b) {
