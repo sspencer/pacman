@@ -50,6 +50,10 @@ Vector2 get_next_tile(Vector2 tile, const Dir dir) {
 // ------------------- SCATTER -------------------
 Vector2 blinky_scatter() {
     // pacman
+    if (game.dots_remaining <= game.level_spec.elroy_1_dots_left) {
+        // blinky_chase();
+        return (Vector2){(float) game.player.x, (float) game.player.y};
+    }
     return tile_to_pixel(GAME_WIDTH-3, -3);
 }
 

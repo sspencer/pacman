@@ -91,6 +91,16 @@ uint32_t get_ghost_speed(const Actor *g) {
         return game.level_spec.ghost_fright_speed;
     }
 
+    if (g->id == BLINKY) {
+        if (game.dots_remaining <= game.level_spec.elroy_2_dots_left) {
+            return game.level_spec.elroy_2_speed;
+        }
+
+        if (game.dots_remaining <= game.level_spec.elroy_1_dots_left) {
+            return game.level_spec.elroy_1_speed;
+        }
+    }
+
     return game.level_spec.ghost_speed;
 }
 
