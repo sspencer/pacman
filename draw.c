@@ -228,7 +228,7 @@ void draw_text(const char *text, int x, int y, Color color) {
 void draw_score_labels(void) {
     draw_text("1UP", 3, 0, WHITE);
     draw_text("HIGH SCORE", 9, 0, WHITE);
-    draw_text("2UP", 22, 0, WHITE);
+    // draw_text("2UP", 22, 0, WHITE);
 }
 
 void draw_scores(void) {
@@ -236,7 +236,7 @@ void draw_scores(void) {
     snprintf(scoreBuffer, sizeof(scoreBuffer), "%d", game.score);
     draw_text(scoreBuffer, 3, 1, WHITE);
     draw_text("0", 13, 1, WHITE);
-    draw_text("0", 24, 1, WHITE);
+    // draw_text("0", 24, 1, WHITE);
 }
 
 void draw_level(void) {
