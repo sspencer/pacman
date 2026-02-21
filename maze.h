@@ -8,7 +8,6 @@
 // TODO remove level get it from game
 void init_maze(int level);
 int get_maze_num(int level);
-int get_maze_top(int level);
 bool is_ghost_wall(int, int);
 
 #endif // PACMAN_MAZE_H
